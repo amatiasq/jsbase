@@ -74,10 +74,8 @@ describe('Class creation', function() {
 	});
 
 	it('should call constructor on instanciation', function() {
-		var spy = new Spy();
-		var A = Class.extend({
-			constructor: spy.spy
-		});
+		var spy = new sassmine.Spy();
+		var A = Class.extend({ constructor: spy });
 
 		expect(spy.callCount).toBe(0);
 		new A();
@@ -87,11 +85,9 @@ describe('Class creation', function() {
 	describe('base method behaviour', function() {
 
 		it('should allow us to call parent class method', function() {
-			var spy = new Spy();
+			var spy = new sassmine.Spy();
 
-			var A = Class.extend({
-				test: spy.spy
-			});
+			var A = Class.extend({ test: spy });
 			var B = A.extend({
 				test: function() {
 					this.base();
@@ -103,11 +99,9 @@ describe('Class creation', function() {
 			expect(spy.callCount).toBe(1);
 
 			it('even with constructors', function() {
-				var spy = new Spy();
+				var spy = new sassmine.Spy();
 
-				var A = Class.extend({
-					constructor: spy.spy
-				});
+				var A = Class.extend({ constructor: spy });
 				var B = A.extend({
 					constructor: function() {
 						this.base();
@@ -136,11 +130,9 @@ describe('Class creation', function() {
 		});
 
 		it('must work with many inheritance levels', function() {
-			var spy = new Spy();
+			var spy = new sassmine.Spy();
 
-			var A = Class.extend({
-				test: spy.spy
-			});
+			var A = Class.extend({ test: spy });
 			var B = A.extend({
 				test: function() {
 					this.base();

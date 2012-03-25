@@ -1,0 +1,13 @@
+#!/bin/bash -e
+
+case $i in
+	
+	build)
+		cat init.js > build.js
+		;;
+
+	test)
+		node init.test.js
+		;;
+
+esac

@@ -2,12 +2,16 @@
  * Copyright © 2009-2012 A. Matías Quezada
  */
 
-(function() {
+var global;
+
+(function(self) {
+
+	global = self;
 
 	function resolveNamespace(ns) {
 		var path = ns.split('.');
 
-		var current = use.global;
+		var current = use.root;
 		for (var i = 0; i < path.length; i++)
 			current = current[path[i]] = current[path[i]] || {};
 
@@ -22,15 +26,15 @@
 
 		return {
 			on: function(callback) {
-				callback.apply(use.global, namespaces);
+				callback.apply(use.root, namespaces);
 			}
 		};
 	}
 
-	use.global = window;
-	window.use = use;
+	use.root = global;
+	global.use = use;
 
-})();
+})(this);
 
 use().on(function() {
 
@@ -69,7 +73,7 @@ use().on(function() {
 			return child;
 		};
 
-	var Class = window.Class = function() { };
+	var Class = global.Class = function() { };
 	Class.__proto__ = Function.prototype;
 	Class.prototype = { constructor: Class };
 

@@ -2,7 +2,7 @@
  * Copyright © 2009-2012 A. Matías Quezada
  */
 
-var use = (function() {
+(function() {
 
 	function resolveNamespace(ns) {
 		var path = ns.split('.');
@@ -28,7 +28,7 @@ var use = (function() {
 	}
 
 	use.global = window;
-	return use;
+	window.use = use;
 
 })();
 

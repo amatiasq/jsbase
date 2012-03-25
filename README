@@ -1,0 +1,63 @@
+A base library for Javascript projects
+Provides some useful behaviour:
+
+ - Global variable 'global' with the global object
+       (window on browser, global on nodejs)
+
+ - Function 'use' described later
+
+ - Implicit module pattern
+
+ - Class 'Class' to create classes easily
+
+
+Function 'use'
+==============
+
+Function use allow us to handle packages, it recives one or many packages as string, create them if not exist, and returns an modulepattern object. This object has only one method 'on', recives a function and calls it with the required packages.
+
+Example:
+
+use('org.amatiasq.jsbase', 'org.amatiasq.Sassmine').on(function(base, sas) {
+    // My module code
+});
+
+This allows us to avoid the strange module pattern sintax
+
+(function() {
+    // My module code
+})();
+
+And as we rename the package when we set the argument it allows us to change the package name without many changes
+
+Example: org.amatiasq.jsbase renamed to com.amatiasq.baselibrary
+
+use('com.amatiasq.baselibrary', 'org.amatiasq.Sassmine').on(function(base, sas) {
+    // My module code
+});
+
+
+Class 'Class'
+=============
+
+Class is a function from where we can create simply new classes throught the .extend() method:
+
+var A = Class.extend({
+
+	constructor: function() {
+		console.log('A instanciated');
+	},
+
+	method: function() {
+	}
+
+});
+
+It also provides the created classes with the .extend method() and method .base() to call the overwriten method or constructor, based on Dean Edwards Base.js http://dean.edwards.name/
+
+var B = A.extend({
+	method: function() {
+		this.base();
+	}
+});
+

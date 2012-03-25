@@ -81,9 +81,7 @@ use().on(function() {
 
 		if (!config.hasOwnProperty('constructor'))
 			config.constructor = function() {
-				if (!this.base)
-					debugger;
-				this.base();
+				this.base.apply(this, arguments);
 			};
 
 		for (var i in config) if (config.hasOwnProperty(i) && typeof config[i] === 'function')

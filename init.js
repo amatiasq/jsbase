@@ -2,9 +2,8 @@
  * Copyright © 2009-2012 A. Matías Quezada
  */
 
-(function(self) {
-
-	global = self;
+(function() {
+	global = this;
 
 	function resolveNamespace(ns) {
 		var path = ns.split('.');
@@ -29,30 +28,35 @@
 		};
 	}
 
+	use.isNodejs = typeof module !== 'undefined' && module.exports;
+	//typeof window === 'undefined'
+
 	use.root = global;
 	global.use = use;
 
-})(this);
+})();
 
 use().on(function() {
 
 	function wrap(object, parent, method) {
 		var original = object[method];
-		var base = parent[method];
-		var init = method === 'init';
+		var code = original.toString();
+		if (code.indexOf('this.base') === -1 && code.indexOf('this.proto') === -1)
+			return;
 
-		function wrapper() {
+		var base = parent[method];
+		var wrapper_to_allow_base = function wrapper_to_allow_base() {
 			var baseValue = this.base, protoValue = this.proto;
 			(this.base = base), (this.proto = parent);
 			var result = original.apply(this, arguments);
 			(this.base = baseValue), (this.proto = protoValue);
 			return result;
 		}
-		wrapper.toString = function() {
+		wrapper_to_allow_base.toString = function() {
 			return original.toString();
 		};
 
-		object[method] = wrapper;
+		object[method] = wrapper_to_allow_base;
 	}
 
 	var prototype = ({}).__proto__ ?
@@ -72,9 +76,6 @@ use().on(function() {
 		};
 
 	var Class = global.Class = function() { };
-	Class.__proto__ = Function.prototype;
-	Class.prototype = { constructor: Class };
-
 	Class.extend = function(config) {
 		var base = this.prototype;
 		config = config || {};
@@ -91,6 +92,10 @@ use().on(function() {
 
 		var clazz = prototype(config.constructor, this);
 		clazz.prototype = prototype(config, this.prototype);
+
+		if (!clazz.extend)
+			clazz.extend = Class.extend;
+
 		return clazz;
 	};
 });

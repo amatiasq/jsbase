@@ -1,0 +1,5 @@
+/*
+describe('Promise class', function() {
+
+});
+*/

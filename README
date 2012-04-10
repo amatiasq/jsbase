@@ -1,14 +1,12 @@
-A base library for Javascript projects
-Provides some useful behaviour:
+A sort of basic tools for Javascript:
 
- - Global variable 'global' with the global object
-       (window on browser, global on nodejs)
-
- - Function 'use' described later
-
- - Implicit module pattern
-
- - Class 'Class' to create classes easily
+ - Use function: Module pattern with namespace creation.
+ 
+ - Class class: Provides a easy inheritance with static .extend method() and method .base() to call the overwriten method or constructor, based on Dean Edwards Base.js http://dean.edwards.name/
+ 
+ - EventEmitter class: Based on nodeJS EventEmitter. Allow to listen and emit events.
+ 
+ - Promise class: A implementation of the Promise Pattern. To make asynchronous calls easier.
 
 
 Function 'use'
@@ -61,3 +59,14 @@ var B = A.extend({
 	}
 });
 
+
+Class 'EventEmitter'
+====================
+
+TODO
+
+
+Class 'Promise'
+===============
+
+TODO

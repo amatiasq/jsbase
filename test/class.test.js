@@ -1,7 +1,3 @@
-/**
- * Copyright © 2009-2012 A. Matías Quezada
- */
-
 describe("Class object", function() {
 
 	describe(".extend() method", function() {
@@ -21,7 +17,7 @@ describe("Class object", function() {
 
 		describe("class creation with methods", function() {
 
-			it("must create a class with the given methods", function() {
+			describe("must create a class with the given methods", function() {
 				var original = function() { };
 				var test = Class.extend({
 					method1: original,
@@ -62,10 +58,9 @@ describe("Class object", function() {
 			var First = Class.extend({
 				someMethod: function() { }
 			});
-			First.staticMethod = new sassmine.Spy()
-			sassmine.Spy.spyMethod(First, 'someMethod');
+			First.staticMethod = function() { };
 
-			it("should extend the class just as Class.extend", function() {
+			describe("should extend the class just as Class.extend", function() {
 				var test = First.extend({
 					otherMethod: function() { }
 				});
@@ -88,9 +83,15 @@ describe("Class object", function() {
 			});
 
 			describe("this.base() functionallity", function() {
+				var mock;
+
 				beforeEach(function() {
-					First.prototype.someMethod.reset();
+					mock = sinon.mock(First.prototype);
 				});
+
+				afterEach(function() {
+					mock.restore();
+				})
 
 				it("must throw a exception if we try to use this.base() in a non-override method", function() {
 					expect(function() {
@@ -103,33 +104,30 @@ describe("Class object", function() {
 				});
 
 				it("should call the parent method", function() {
+					mock.expects('someMethod').once();
+
 					var test = First.extend({
 						someMethod: function() {
 							this.base();
 						}
 					});
-
-					expect(First.prototype.someMethod.callCount).toBe(0);
 					new test().someMethod();
-					expect(First.prototype.someMethod.callCount).toBe(1);
+
+					mock.verify();
 				});
 
 				it("should pass the arguments to the parent method", function() {
 					var obj = {};
+					mock.expects('someMethod').once().withExactArgs(1, 'asdf', obj);
+
 					var test = First.extend({
 						someMethod: function() {
 							this.base(1, "asdf", obj);
 						}
 					});
-
-					expect(First.prototype.someMethod.callCount).toBe(0);
 					new test().someMethod();
-					expect(First.prototype.someMethod.callCount).toBe(1);
 
-					var args = First.prototype.someMethod.lastArguments;
-					expect(args[0]).toBe(1);
-					expect(args[1]).toBe("asdf");
-					expect(args[2]).toBe(obj);
+					mock.verify();
 				});
 			});
 		});

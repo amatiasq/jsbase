@@ -1,3 +1,0 @@
-[submodule "deps/Sassmine"]
-	path = deps/Sassmine
-	url = git@github.com:amatiasq/Sassmine.git

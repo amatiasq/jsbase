@@ -1,9 +1,9 @@
-describe("Class object", function() {
+describe("Base object", function() {
 
 	describe(".extend() method", function() {
 
 		describe("empty class creation", function() {
-			var test = Class.extend();
+			var test = Base.extend();
 
 			it("should be a function and must have the extend method", function() {
 				expect(test).toBeFunction();
@@ -11,7 +11,7 @@ describe("Class object", function() {
 			});
 
 			it("should the prototype of the result function should be ", function() {
-				expect(Object.getPrototypeOf(test.prototype)).toBe(Class.prototype);
+				expect(Object.getPrototypeOf(test.prototype)).toBe(Base.prototype);
 			});
 		});
 
@@ -19,7 +19,7 @@ describe("Class object", function() {
 
 			describe("must create a class with the given methods", function() {
 				var original = function() { };
-				var test = Class.extend({
+				var test = Base.extend({
 					method1: original,
 					method2: original
 				});
@@ -34,33 +34,33 @@ describe("Class object", function() {
 				});
 
 				it("should not modify the parent class", function() {
-					expect(Class.prototype.method1).not.toBe(original);
-					expect(Class.prototype.method2).not.toBe(original);
+					expect(Base.prototype.method1).not.toBe(original);
+					expect(Base.prototype.method2).not.toBe(original);
 				});
 			});
 
 			it("should provide this.proto to access the parent class prototype", function() {
 				var proto;
-				var test = Class.extend({
+				var test = Base.extend({
 					someMethod: function() {
 						proto = this.proto;
 					}
 				});
 
 				new test().someMethod();
-				expect(proto).toBe(Class.prototype);
+				expect(proto).toBe(Base.prototype);
 			});
 
 		});
 
 		describe("subclases generation", function() {
 
-			var First = Class.extend({
+			var First = Base.extend({
 				someMethod: function() { }
 			});
 			First.staticMethod = function() { };
 
-			describe("should extend the class just as Class.extend", function() {
+			describe("should extend the class just as Base.extend", function() {
 				var test = First.extend({
 					otherMethod: function() { }
 				});
@@ -95,7 +95,7 @@ describe("Class object", function() {
 
 				it("must throw a exception if we try to use this.base() in a non-override method", function() {
 					expect(function() {
-						Class.extend({
+						Base.extend({
 							unexisting: function() {
 								this.base();
 							}
@@ -130,6 +130,7 @@ describe("Class object", function() {
 					mock.verify();
 				});
 			});
+
 		});
 	});
 });

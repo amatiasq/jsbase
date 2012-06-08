@@ -7,7 +7,7 @@ describe("Emitter class", function() {
 
 	beforeEach(function() {
 		emitter = new Emitter();
-		spy = new sassmine.Spy();
+		spy = sinon.spy();
 	});
 
 	describe('on-emit relation', function() {
@@ -18,26 +18,27 @@ describe("Emitter class", function() {
 
 		beforeEach(function() {
 			spy.reset();
+			emitter.on('something', spy);
 		})
 
 		it("should call the listeners listening to the passed signal", function() {
-			expect(spy.callCount).toBe(0);
+			expect(spy).never.called();
 			emitter.emit('something');
-			expect(spy.callCount).toBe(1);
+			expect(spy).called.once();
 		});
 
 		it("should not call the listeners of other signals", function() {
-			expect(spy.callCount).toBe(0);
+			expect(spy).never.called();
 			emitter.emit('another singal');
-			expect(spy.callCount).toBe(0);
+			expect(spy).never.called();
 		});
 
 		it("should fire the listener as many times as it is added", function() {
 			emitter.on('something', spy);
 
-			expect(spy.callCount).toBe(0);
+			expect(spy).never.called();
 			emitter.emit('something');
-			expect(spy.callCount).toBe(2);
+			expect(spy).called.twice();
 		});
 	});
 
@@ -46,15 +47,15 @@ describe("Emitter class", function() {
 		it("must disable a listener for a determined signal", function() {
 			emitter.on('something', spy);
 
-			expect(spy.callCount).toBe(0);
+			expect(spy).never.called();
 			emitter.emit('something');
 			emitter.emit('something');
-			expect(spy.callCount).toBe(2);
+			expect(spy).called.twice();
 
 			emitter.off('something', spy);
 
 			emitter.emit('something');
-			expect(spy.callCount).toBe(2);
+			expect(spy).called.twice();
 		});
 	});
 
@@ -63,13 +64,13 @@ describe("Emitter class", function() {
 		it("should add a listener to be fired only once", function() {
 			emitter.once('something', spy);
 
-			expect(spy.callCount).toBe(0);
+			expect(spy).never.called();
 			emitter.emit('something');
-			expect(spy.callCount).toBe(1);
+			expect(spy).called.once();
 			emitter.emit('something');
-			expect(spy.callCount).toBe(1);
+			expect(spy).called.once();
 			emitter.emit('something');
-			expect(spy.callCount).toBe(1);
+			expect(spy).called.once();
 
 		});
 	});

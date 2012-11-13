@@ -1,52 +1,57 @@
-/**
- * Copyright © 2009-2012 A. Matías Quezada
- */
-
 (function(root) {
 	"use strict";
+
+	function equals(handler, scope, expected) {
+		return function(item) {
+			return (
+				item.funct === handler &&
+				item.scope === scope
+			) === expected;
+		};
+	}
 
 	function Emitter() {
 		this._listeners = {};
 	}
-	Emitter.prototype = {
-		constructor: Emitter,
 
-		emit: function(event, var_args) {
-			var list = this._listeners[event];
-			if (!list)
+	Emitter.prototype = {
+		listenersCount: function(signal) {
+			var list = this._listeners[signal];
+			return  list ? list.length : 0;
+		},
+
+		on: function on(signal, handler, scope) {
+			var list = this._listeners;
+
+			if (!list[signal])
+				list[signal] = [];
+
+			if (list[signal].some(equals(handler, scope, true)))
 				return;
 
-			var args = Array.prototype.slice.call(arguments, 1);
-			for (var i = 0, len = list.length; i < len; i++)
-				list[i].apply(null, args);
-		},
-
-		on: function(event, listener) {
-			if (!this._listeners[event])
-				this._listeners[event] = [];
-
-			this._listeners[event].push(listener);
-			this.emit('newListener', event, listener);
-		},
-
-		once: function(event, listener) {
-			var self = this;
-
-			this.on(event, function wrapper() {
-				self.off(event, wrapper);
-				listener.apply(null, arguments);
+			list[signal].push({
+				funct: handler,
+				scope: scope
 			});
 		},
 
-		off: function(event, listener) {
-			var list = this._listeners[event];
+		off: function off(signal, handler, scope) {
+			var list = this._listeners[signal];
 			if (!list)
 				return;
 
-			var index = list.indexOf(listener);
-			if (index !== -1)
-				list.splice(index, 1);
+			this._listeners[signal] = list.filter(equals(handler, scope, false));
+		},
 
+		emit: function emit(signal) {
+			var list = this._listeners[signal];
+			if (!list)
+				return;
+
+			var data = Array.prototype.slice.call(arguments, 1);
+			list.forEach(function(item) {
+				item.funct.apply(item.scope, data);
+			});
 		}
 	};
 

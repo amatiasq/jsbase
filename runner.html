@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Spec Runner</title>
+		<link rel="stylesheet" type="text/css" href="lib/mocha.css" />
+
+		<!--style type="text/css">
+			body {
+				background-color: black;
+				color: white;
+			}
+			#mocha-div #stats em {
+				color: white;
+			}
+		</style-->
+
+		<script>
+			if (location.hash === '#testem')
+				document.write('<script src="/testem.js"></'+'script>')
+		</script>
+	</head>
+	<body>
+		<div id="mocha"></div>
+		<!-- TEST LIBRARIES INCLUDES -->
+		<script type="text/javascript" src="lib/expect.js"></script>
+		<script type="text/javascript" src="lib/sinon-1.3.4.js"></script>
+		<script type="text/javascript" src="lib/mocha.js"></script>
+		<!-- ... -->
+
+		<!-- MOCHA CONFIG -->
+		<script type="text/javascript">mocha.setup({ ui: "bdd" });</script>
+		<!-- ... -->
+
+		<!-- SUT -->
+		<script type="text/javascript" src="src/extend.js"></script>
+		<script type="text/javascript" src="src/lang.js"></script>
+		<script type="text/javascript" src="src/emitter.js"></script>
+		<script type="text/javascript" src="src/promise.js"></script>
+		<!-- ... -->
+
+		<!-- TESTS -->
+		<script type="text/javascript" src="test/extend.test.js"></script>
+		<!--script type="text/javascript" src="test/lang.test.js"></script>
+		<script type="text/javascript" src="test/emitter.test.js"></script>
+		<script type="text/javascript" src="test/promise.test.js"></script>
+		<!- ... -->
+
+		<!-- EXECUTE -->
+		<script type="text/javascript">mocha.run();</script>
+		<!-- ... -->
+	</body>
+</html>

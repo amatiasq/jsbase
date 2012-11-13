@@ -1,4 +1,117 @@
-describe("Base object", function() {
+describe("extend() function", function() {
+	"use strict";
+
+	function testBase(creator) {
+		it('should add every method I pass to the function to the created Type', function() {
+			function a() { }
+			var SubType = creator({ a: a });
+			var sut = new SubType;
+			expect(sut.a).toBe(a);
+		});
+
+		it('should provide the method with a this.base() function to call the overwitten method', function() {
+			var spy = sinon.spy();
+			function a() { this.base(); }
+
+			var SubType = creator({ a: spy });
+			var FinalType = creator({ a: a }, SubType);
+
+			var sut = new FinalType();
+			sut.a();
+
+			expect(spy.calledOnce).toBeTrue();
+		});
+
+		it('should return the value returned by the parent method if I return the result of this.base()', function() {
+			var result = 'hello!';
+			function a_original() { return result };
+			function a_overwrite() { return this.base(); }
+
+			var SubType = creator({ a: a_original });
+			var FinalType = creator({ a: a_overwrite }, SubType);
+
+			var sut = new FinalType();
+			expect(sut.a()).toBe(result);
+		});
+	}
+
+	function testInstance(Type) {
+		var sut;
+		beforeEach(function() {
+			sut = new Type;
+		});
+
+		it('should return a object', function() {
+			expect(sut).not.toBeFalsy();
+		});
+
+		it('should return true when use instanceof operator over the Type', function() {
+			expect(sut instanceof Type).toBeTrue();
+		});
+	}
+
+	function testType(Type, Parent) {
+		it('should be a function', function() {
+			expect(Type).toBeFunction();
+		});
+
+		it('should have a extend method', function() {
+			expect(Type.extend).toBeFunction();
+		});
+
+		it('should have a inject method', function() {
+			expect(Type.inject).toBeFunction();
+		});
+
+		it('should prototype the first passed type', function() {
+			expect(Object.getPrototypeOf(Type.prototype)).toBe(Parent.prototype);
+		});
+
+		describe('Instances behaviour', function() {
+			testInstance(Type);
+		});
+
+		describe('#inject method', function() {
+			it('should modify current type', function() {
+				var SubType = Type.extend();
+				SubType.inject({ a: '1' });
+				expect(SubType.prototype.a).toBe('1');
+			});
+
+			var Sub;
+			beforeEach(function() {
+				Sub = Type.extend();
+			})
+
+			testBase(function(config) {
+				Sub.inject(config)
+				return Sub;
+			});
+		});
+
+		describe('#extend method', function() {
+			it('should return a new Type', function() {
+				var SubType = Type.extend();
+				expect(SubType).toBeFunction();
+				expect(SubType).not.toBe(Type);
+			});
+
+			testBase(function(config, Base) {
+				return (Base || Type).extend(config)
+			});
+		});
+	}
+
+	describe("Returned object should be a Type", function() {
+		testType(extend(Object), Object);
+
+		describe('Who also can create SubTypes recursively', function() {
+			var Type = extend(Object);
+			testType(Type.extend(), Type);
+		})
+	});
+});
+	/*
 
 	describe(".extend() method", function() {
 
@@ -134,3 +247,4 @@ describe("Base object", function() {
 		});
 	});
 });
+*/

@@ -2,7 +2,8 @@
  * Copyright © 2009-2012 A. Matías Quezada
  */
 
-(function() {
+(function(root) {
+	"use strict";
 
 	var slice = Array.prototype.slice;
 
@@ -203,9 +204,11 @@
 		}
 	}
 
-	if (typeof window === 'undefined')
+	if (typeof module !== 'undefined' && module.exports)
 		module.exports = Promise;
+	else if (typeof define !== 'undefined' && define.amd)
+		define(function() { return Promise });
 	else
-		this.Promise = Promise;
+		root.Promise = Promise;
 
-})();
+})(this);

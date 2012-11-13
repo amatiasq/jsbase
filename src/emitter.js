@@ -2,7 +2,8 @@
  * Copyright © 2009-2012 A. Matías Quezada
  */
 
-(function() {
+(function(root) {
+	"use strict";
 
 	function Emitter() {
 		this._listeners = {};
@@ -52,9 +53,11 @@
 	if (typeof Base === 'function')
 		Emitter = Base.extend(Emitter.prototype);
 
-	if (typeof window === 'undefined')
+	if (typeof module !== 'undefined' && module.exports)
 		module.exports = Emitter;
+	else if (typeof define !== 'undefined' && define.amd)
+		define(function() { return Emitter });
 	else
-		this.Emitter = Emitter;
+		root.Emitter = Emitter;
 
-})();
+})(this);

@@ -1,3 +1,0 @@
-[submodule "deps/mecha.js"]
-	path = deps/mecha.js
-	url = git@github.com:amatiasq/mecha.js.git

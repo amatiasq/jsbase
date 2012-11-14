@@ -83,7 +83,7 @@
 
 		// We create the constructor
 		var ctor = has.call(config, 'constructor') ?
-				wrap(config.constructor, this) :
+				wrap(config.constructor, Parent) :
 				function ctor() { Parent.apply(this, arguments); };
 
 		// Copy parent's statics

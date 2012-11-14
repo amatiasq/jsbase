@@ -3,17 +3,6 @@
 	<head>
 		<title>Spec Runner</title>
 		<link rel="stylesheet" type="text/css" href="lib/mocha.css" />
-
-		<!--style type="text/css">
-			body {
-				background-color: black;
-				color: white;
-			}
-			#mocha-div #stats em {
-				color: white;
-			}
-		</style-->
-
 		<script>
 			if (location.hash === '#testem')
 				document.write('<script src="/testem.js"></'+'script>')
@@ -40,10 +29,10 @@
 
 		<!-- TESTS -->
 		<script type="text/javascript" src="test/extend.test.js"></script>
+		<script type="text/javascript" src="test/lang.test.js"></script>
 		<script type="text/javascript" src="test/emitter.test.js"></script>
-		<!--script type="text/javascript" src="test/lang.test.js"></script>
 		<script type="text/javascript" src="test/promise.test.js"></script>
-		<!- ... -->
+		<!-- ... -->
 
 		<!-- EXECUTE -->
 		<script type="text/javascript">mocha.run();</script>

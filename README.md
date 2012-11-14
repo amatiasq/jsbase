@@ -1,4 +1,5 @@
 # jsBase
+Version 1.0
 
 A list of independent modules to add to any project, in order of complexity:
 

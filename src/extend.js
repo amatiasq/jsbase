@@ -82,20 +82,20 @@
 		config = config || {};
 
 		// We create the constructor
-		var ctor = has.call(config, 'constructor') ?
+		var ctor = has.call(config, 'constructor') &&
+				typeof config.constructor === 'function' ?
 				wrap(config.constructor, Parent) :
-				function ctor() { Parent.apply(this, arguments); };
+				function() { Parent.apply(this, arguments); };
 
+		// Add basic static methods
+		ctor.extend = function(desc) { return extend(this, desc) };
+		ctor.inject = function(desc) { return inject(this.prototype, desc) };
 		// Copy parent's statics
 		inject(ctor, Parent);
 
 		// Extend parent prototype
 		intermediate.prototype = Parent.prototype
 		ctor.prototype = new intermediate;
-
-		// Add basic static methods
-		ctor.extend = extend.bind(null, ctor);
-		ctor.inject = inject.bind(null, ctor.prototype);
 
 		// Apply new methods
 		ctor.inject(config);
@@ -104,8 +104,6 @@
 
 		return ctor;
 	}
-
-	// extend(Object, {});
 
 	if (typeof module !== 'undefined' && module.exports)
 		module.exports = extend;

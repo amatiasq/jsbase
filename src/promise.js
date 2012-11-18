@@ -20,6 +20,7 @@
  *   void onError(Function callback, Object scope);
  *   void onFinally(Function callback, Object scope);
  *   void then(Function success, Function error, Function fin);
+ *   Future transform(Function adapter);
  * }
  *
  * Provides a type to handle asyncrhonous executions.
@@ -250,8 +251,7 @@
 				i.callback.apply(i.scope, args);
 			}
 
-			this._fn[type].forEach(invoke);
-			this._fn['finally'].forEach(invoke);
+			var callbacks = this._fn[type].concat(this._fn['finally']);
 
 			this._fn = {
 				'success': false,
@@ -261,6 +261,8 @@
 
 			this._args = args;
 			this._fn[type] = true;
+
+			callbacks.forEach(invoke);
 		},
 
 		/**
@@ -278,7 +280,7 @@
 		 * @returns <bool>
 		 */
 		hasFailed: function() {
-			return this._fn['failed'] === true	
+			return this._fn['failed'] === true
 		},
 
 		/**
@@ -340,6 +342,33 @@
 
 			if (fin)
 				this.onFinally(fin);
+		},
+
+		/**
+		 * Returns a new future who will be fired when this future is completed
+		 *   but the passed value will be the values returned by the adapter function.
+		 *
+		 * @param adapter <Function> Function than adapts the values. Will recive
+		 *    the same arguments a normal callback will recive and the returned value
+		 *    will be passed to the new future. If the returned value is a array they
+		 *    will be passed as arguments.
+		 * @returns <Future> The future with the adapted value.
+		 */
+		transform: function(adapter) {
+			var promise = new Promise();
+
+			this.then(function() {
+				var values = adapter.apply(null, arguments);
+
+				if (!values || values.constructor !== 'array')
+					values = [values];
+
+				promise.done.apply(promise, values);
+			}, function() {
+				promise.fail.apply(promise, arguments);
+			});
+
+			return promise.getFuture();
 		}
 	};
 

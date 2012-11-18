@@ -60,6 +60,7 @@ TODO: Add .once() method to listen a signal only once.
       void onError(Function callback, Object scope);
       void onFinally(Function callback, Object scope);
       void then(Function success, Function error, Function fin);
+      Future transform(Function adapter);
     }
 
 Usage:
@@ -74,7 +75,7 @@ Usage:
       });
       return promise.getFuture();
     }
-    
+
     loadConfig().then(function(content, mime) {
       console.log("Success");
     }, function(error) {

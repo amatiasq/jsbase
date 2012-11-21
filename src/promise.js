@@ -158,6 +158,9 @@
 	 * @returns <Future> The new future.
 	 */
 	Promise.all = function(futures) {
+		if (!futures || !futures.length)
+			return Promise.done();
+
 		var promise = new Promise();
 		var values = [];
 

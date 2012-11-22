@@ -1,6 +1,11 @@
+# 1.1.0
+Tag: v1.1.0 - Commit: 6f244a49e892f7cfaa7960e95fb514354dc08f28
+
+### Adding Travis as build system.
+Now on every change the code will be tested on node-js. It's status can be seen at https://api.travis-ci.org/amatiasq/jsbase.png
+
 # 1.0.4
-Commit: 4e0566c9303b584d3a3db0ad83084be0d275026f
-Tag: v1.0.4
+Tag: v1.0.4 - Commit: 4e0566c9303b584d3a3db0ad83084be0d275026f
 
 ### Fixed bug on Promise.all and Promise.parallel
 If the futures array is empty the returned future will never succeed
@@ -17,7 +22,7 @@ This returns a new binded future who will fail if this future fails and will suc
 # 1.0.2
 Commit: 16651c82921739e186f863fed72c972967113e38
 
-### Fixed bug on extend() 
+### Fixed bug on extend()
 If second argument has a empty property "constructor" it treats it like a function.
 
 ### Modified .extend() and .inject() statics methods behaviour

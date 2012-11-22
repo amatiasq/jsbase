@@ -1,3 +1,9 @@
+if (typeof module !== 'undefined' && module.exports === exports) {
+	var sinon = require('sinon');
+	var expect = require('../lib/expect');
+	var Lang = require('../src/is');
+}
+
 describe('Lang class', function() {
 
 	var types = [

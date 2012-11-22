@@ -1,3 +1,9 @@
+if (typeof module !== 'undefined' && module.exports === exports) {
+	var sinon = require('sinon');
+	var expect = require('../lib/expect');
+	var Promise = require('../src/promise');
+}
+
 describe('Promise class', function() {
 
 	var promise, future;

@@ -1,3 +1,9 @@
+if (typeof module !== 'undefined' && module.exports === exports) {
+	var sinon = require('sinon');
+	var expect = require('../lib/expect');
+	var extend = require('../src/extend');
+}
+
 describe("extend() function", function() {
 	"use strict";
 

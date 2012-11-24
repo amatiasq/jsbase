@@ -87,7 +87,7 @@
 		 * @param signal <String> The signal of the listeners we want to invoke.
 		 * @param var_args <object...> Any arguments we want the callbacks to recive.
 		 */
-		emit: function emit(signal, var_args) {
+		emit: function emit(signal/*, var_args*/) {
 			var list = this._listeners[signal];
 			if (!list)
 				return;

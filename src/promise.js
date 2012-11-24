@@ -83,7 +83,7 @@
 		 *
 		 * @param var_args <Object> As many arguments as should be passed to the callbacks.
 		 */
-		done: function(var_args) {
+		done: function(/*var_args*/) {
 			var args = slice.call(arguments);
 			this.getFuture()._arrived('success', args);
 		},
@@ -93,7 +93,7 @@
 		 *
 		 * @param var_args <Object> As many arguments as should be passed to the callbacks.
 		 */
-		fail: function(var_args) {
+		fail: function(/*var_args*/) {
 			var args = slice.call(arguments);
 			this.getFuture()._arrived('failed', args);
 		},
@@ -115,7 +115,7 @@
 	 * @param var_args <Object> Arguments to pass to the .done() method of the promise.
 	 * @returns <Future> The future of the done promise.
 	 */
-	Promise.done = function(var_args) {
+	Promise.done = function(/*var_args*/) {
 		var a = new Promise;
 		a.done.apply(a, arguments);
 		return a.getFuture();
@@ -128,7 +128,7 @@
 	 * @param var_args <Object> Arguments to pass to the .fail() method of the promise.
 	 * @returns <Future> The future of the failed promise.
 	 */
-	Promise.failed = function(var_args) {
+	Promise.failed = function(/*var_args*/) {
 		var a = new Promise;
 		a.fail.apply(a, arguments);
 		return a.getFuture();
@@ -146,7 +146,7 @@
 	 * @param var_args <Future> Futures to wait.
 	 * @returns <Future> The new future.
 	 */
-	Promise.parallel = function(var_args) {
+	Promise.parallel = function(/*var_args*/) {
 		return Promise.all(slice.call(arguments));
 	};
 

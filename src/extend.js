@@ -39,20 +39,6 @@
 	}
 
 	/**
-	 * Prototypes a object and injects given configuration.
-	 * Does not respect child, it can return the same object or a new one depending on browser.
-	 */
-	var proto = ({}).__proto__ ?
-		function(child, parent) { return (child.__proto__ = parent), child } :
-		function(config, parent) {
-			intermediate.prototype = parent;
-			var child = new intermediate();
-			each(config, function(val, i) { child[i] = val });
-			return child;
-		};
-
-
-	/**
 	 * Adds every item in config to obj
 	 * If it's a function it will wrap it in order to have this.base();
 	 *

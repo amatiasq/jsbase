@@ -5,6 +5,8 @@
  * It extends constructors with it's methods
  * Also provides to every method who overwrites another one
  *   with a this.base() method to invoke overwrote method.
+ * This feature is based in Dean Edwards implementation:
+ *   http://dean.edwards.name/weblog/2006/03/base/
  *
  * Created constructor has methods
  *    .extend(Object config)

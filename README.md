@@ -1,5 +1,5 @@
 # jsBase [![Build Status](https://travis-ci.org/amatiasq/jsbase.png)](https://travis-ci.org/amatiasq/jsbase)
-Version 1.0
+Version 1.2
 
 A list of independent modules to add to any project, in order of complexity:
 
@@ -22,6 +22,7 @@ Uses generic algorithms to detect if the is of the type.
 
 It extends constructor with it's methods.
 Also provides to every method who overwrites another one with a this.base() method to invoke overwrote method.
+This feature is based in [Dean Edwards implementation](http://dean.edwards.name/weblog/2006/03/base/)
 
 Created constructor has a .extend() method to create subtypes and .inject() to apply mixins to the current type:
   * Type.extend(Object config)
@@ -32,6 +33,7 @@ Created constructor has a .extend() method to create subtypes and .inject() to a
     interface Emitter {
       void on(String signal, Function handler, [Object scope]);
       void off(String signal, Function handler, [Object scope]);
+      void once(String signal, Function handler, [Object scope]);
       void emit(String signal, Object var_args...);
     }
 

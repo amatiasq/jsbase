@@ -1,3 +1,9 @@
+# 1.2.0
+Tag: v1.2.0
+
+### Added method .once() to Emitter.
+This method allow us to add a listener who will be fired only the next time the signal is emitted.
+
 # 1.1.0
 Tag: v1.1.0 - Commit: 6f244a49e892f7cfaa7960e95fb514354dc08f28
 

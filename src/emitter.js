@@ -2,12 +2,11 @@
  * interface Emitter {
  *   void on(String signal, Function handler, [Object scope]);
  *   void off(String signal, Function handler, [Object scope]);
+ *   void once(String signal, Function handler, [Object scope]);
  *   void emit(String signal, Object var_args...);
  * }
  *
  * Provides a constructor to listen and emit signals.
- *
- * TODO: Add .once() method to listen a signal only once.
  */
 
 (function(root) {
@@ -20,6 +19,13 @@
 				item.scope === scope
 			) === expected;
 		};
+	}
+
+	function hasListener(listeners, signal, handler, scope) {
+		if (!listeners[signal])
+			return false;
+
+		return listeners[signal].some(equals(handler, scope, true))
 	}
 
 	/**
@@ -53,11 +59,11 @@
 		on: function on(signal, handler, scope) {
 			var list = this._listeners;
 
+			if (hasListener(list, signal, handler, scope))
+				return;
+
 			if (!list[signal])
 				list[signal] = [];
-
-			if (list[signal].some(equals(handler, scope, true)))
-				return;
 
 			list[signal].push({
 				funct: handler,
@@ -78,6 +84,23 @@
 				return;
 
 			this._listeners[signal] = list.filter(equals(handler, scope, false));
+		},
+
+		/**
+		 * Adds a listener to be fired only the next time the signal is emitted.
+		 *
+		 * @param signal <String> The signal to listen.
+		 * @param handler <Function> The callback function.
+		 * @param scope <Object?> The scope for the callback.
+		 */
+		once: function once(signal, handler, scope) {
+			if (hasListener(this._listeners, signal, handler, scope))
+				return;
+
+			this.on(signal, function wrapper() {
+				this.off(signal, wrapper, this);
+				handler.apply(scope, arguments);
+			}, this);
 		},
 
 		/**

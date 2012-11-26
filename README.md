@@ -1,5 +1,6 @@
 # jsBase [![Build Status](https://travis-ci.org/amatiasq/jsbase.png)](https://travis-ci.org/amatiasq/jsbase)
 Version 1.2
+Browser, nodejs and AMD supported
 
 A list of independent modules to add to any project, in order of complexity:
 

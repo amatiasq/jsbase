@@ -37,8 +37,6 @@ Created constructor has a .extend() method to create subtypes and .inject() to a
       void emit(String signal, Object var_args...);
     }
 
-TODO: Add .once() method to listen a signal only once.
-
 ## Promise
 
     interface Promise {
@@ -67,19 +65,32 @@ TODO: Add .once() method to listen a signal only once.
 
 Usage:
 
-    function loadConfig() {
+    var cache = {};
+    function getData(id) {
+      if (cache[id])
+        return Promise.done(cache[id]);
+    
       var promise = new Promise();
-      ajax('/config.file', function(err, response) {
-        if (err)
+      ajax('/data/' + id, function(err, response) {
+        if (err) {
           promise.fail(err);
-        else
-          promise.done(response.content, response.mimetype);
+        } else {
+          cache[id] = response.data;
+          promise.done(response.data);
+        }
       });
       return promise.getFuture();
     }
 
-    loadConfig().then(function(content, mime) {
+    getData(123).then(function(data) {
       console.log("Success");
     }, function(error) {
       console.log("Failed: " + error)
-    })
+    });
+    
+    // OR
+    
+    getData(123)
+      .onDone(function() { /* access to this */ }, this);
+      .onFail(function() { /* access to this */ }, this);
+      .onFinally(function() { /* access to this */ }, this);

@@ -2,7 +2,7 @@
 	"name": "jsbase",
 	"version": "1.0.4",
 	"description": "A base library to develop easily classes and modules",
-	"author": "A. Matías Quezada <amatiasq@gmail.com",
+	"author": "A. Matías Quezada <amatiasq@gmail.com>",
 	"dependencies": {},
 	"devDependencies": {
 		"unused": "0.2.x",

@@ -1,6 +1,7 @@
 # jsBase [![Build Status](https://travis-ci.org/amatiasq/jsbase.png)](https://travis-ci.org/amatiasq/jsbase)
 Version 1.2
-Browser, nodejs and AMD supported
+
+**Browser, NodeJS and AMD** supported
 
 A list of independent modules to add to any project, in order of complexity:
 
@@ -70,7 +71,7 @@ Usage:
     function getData(id) {
       if (cache[id])
         return Promise.done(cache[id]);
-    
+
       var promise = new Promise();
       ajax('/data/' + id, function(err, response) {
         if (err) {
@@ -88,9 +89,9 @@ Usage:
     }, function(error) {
       console.log("Failed: " + error)
     });
-    
+
     // OR
-    
+
     getData(123)
       .onDone(function() { /* access to this */ }, this);
       .onFail(function() { /* access to this */ }, this);

@@ -1,7 +1,7 @@
 if (typeof module !== 'undefined' && module.exports === exports) {
 	var sinon = require('sinon');
 	var expect = require('../lib/expect');
-	var Lang = require('../src/is');
+	var Lang = require('../src' + (process.env['CODE_COVERAGE'] ? '-cov' : '') + '/is');
 }
 
 describe('Lang class', function() {

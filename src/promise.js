@@ -7,7 +7,6 @@
  *   static Promise failed(Object var_args...);
  *   static Promise parallel(Future var_args...);
  *   static Promise all(Array<Future> futures);
- *   static Promise serial(Array<Function> callbacks, Object scope);
  *   static Constructor Future;
  *   static Constructor PromiseError;
  * }
@@ -21,6 +20,7 @@
  *   void onFinally(Function callback, Object scope);
  *   void then(Function success, Function error, Function fin);
  *   Future transform(Function adapter);
+ *   Future flatResults();
  * }
  *
  * Provides a type to handle asyncrhonous executions.
@@ -146,19 +146,11 @@
 	 * @param var_args <Future> Futures to wait.
 	 * @returns <Future> The new future.
 	 */
-	Promise.parallel = function(/*var_args*/) {
-		return Promise.all(slice.call(arguments));
-	};
+	Promise.all = Promise.parallel = function(futures) {
+		if (arguments.length !== 1)
+			futures = slice.call(arguments);
 
-	/**
-	 * Returns a future to be triggered when every passed future is completed.
-	 * If any future fails the returned future will fail too.
-	 *
-	 * @param futures <Array<Future>> Futures to wait.
-	 * @returns <Future> The new future.
-	 */
-	Promise.all = function(futures) {
-		if (!futures || !futures.length)
+		if (!futures.length)
 			return Promise.done();
 
 		futures = futures.map(function(future) {
@@ -226,6 +218,7 @@
 	 */
 	function Future() {
 		this._args = null;
+		this._flat = false;
 		this._fn = {
 			'success': [],
 			'failed': [],
@@ -367,7 +360,7 @@
 			this.then(function() {
 				var values = adapter.apply(null, arguments);
 
-				if (!values || values.constructor !== 'array')
+				if (Object.prototype.toString.call(values) !== '[object Array]')
 					values = [values];
 
 				promise.done.apply(promise, values);
@@ -376,6 +369,24 @@
 			});
 
 			return promise.getFuture();
+		},
+
+		/**
+		 * Recives only the first item of each argument. Usefull on promises created
+		 *   by Promise.parallel who only recive one argument per promise.
+		 *
+		 * @returns <Future> The future who will handle the flatted results.
+		 */
+		flatResults: function() {
+			return this.transform(function() {
+				var args = slice.call(arguments);
+				var result = [];
+
+				for (var i = args.length; i--; )
+					result[i] = args[i][0];
+
+				return result;
+			});
 		}
 	};
 

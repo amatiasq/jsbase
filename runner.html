@@ -3,10 +3,6 @@
 	<head>
 		<title>Spec Runner</title>
 		<link rel="stylesheet" type="text/css" href="lib/mocha.css" />
-		<script>
-			if (location.hash === '#testem')
-				document.write('<script src="/testem.js"></'+'script>')
-		</script>
 	</head>
 	<body>
 		<div id="mocha"></div>
@@ -14,6 +10,10 @@
 		<script type="text/javascript" src="lib/expect.js"></script>
 		<script type="text/javascript" src="lib/sinon-1.3.4.js"></script>
 		<script type="text/javascript" src="lib/mocha.js"></script>
+		<script>
+			if (location.hash === '#testem')
+				document.write('<script src="/testem.js"></'+'script>')
+		</script>
 		<!-- ... -->
 
 		<!-- MOCHA CONFIG -->

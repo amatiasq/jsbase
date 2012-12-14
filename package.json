@@ -8,9 +8,11 @@
 		"unused": "0.2.x",
 		"leaky": "0.1.x",
 		"mocha": "1.7.x",
-		"sinon": "1.5.x"
+		"sinon": "1.5.x",
+		"promise-tests": "*"
+
 	},
 	"scripts": {
-		"test": "unused src/* && leaky src && mocha"
+		"test": "unused src/* && leaky src && promise-tests all test/promise-tests-adapter && mocha"
 	}
 }

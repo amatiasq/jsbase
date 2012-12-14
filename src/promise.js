@@ -1,403 +1,228 @@
-/**
- * interface Promise {
- *   Future getFuture();
- *   void done(Object var_args...);
- *   void fail(Object var_args...);
- *   static Promise done(Object var_args...);
- *   static Promise failed(Object var_args...);
- *   static Promise parallel(Future var_args...);
- *   static Promise all(Array<Future> futures);
- *   static Constructor Future;
- *   static Constructor PromiseError;
- * }
- *
- * interface Future {
- *   bool isCompleted();
- *   bool hasFailed();
- *   bool hasSucceed();
- *   void onDone(Function callback, Object scope);
- *   void onError(Function callback, Object scope);
- *   void onFinally(Function callback, Object scope);
- *   void then(Function success, Function error, Function fin);
- *   Future transform(Function adapter);
- *   Future flatResults();
- * }
- *
- * Provides a type to handle asyncrhonous executions.
- * Usage:
- * A promise must be created on any method who executes a asyncrhonous operation and it's future should be returned.
- *   The future will collect listeners waiting for the asyncrhounous operation outside of your function.
- *   When the asyncrhonous operation is over you can call promise.done() or promise.fail() passing as many
- *     arguments as you need than will be recived by callbacks added to .onDone() or .onFail() respectively.
- *
- * function loadConfig() {
- *   var promise = new Promise();
- *   ajax('/config.file', function(err, response) {
- *     if (err)
- *       promise.fail(err);
- *     else
- *       promise.done(response.content, response.mimetype);
- *   });
- *   return promise.getFuture();
- * }
- * loadConfig().then(function(content, mime) {
- *   console.log("Success");
- * }, function(error) {
- *   console.log("Failed: " + error)
- * })
- */
+/*
 
-(function(root) {
+
+interface Promise {
+	void resolve(Object value);
+	void reject(Error err);
+
+	static Future normalize(Promise|Object value); alias when
+	static Future resolved(Object value);
+	static Future rejected(Error err);
+
+	static Future all(Array<Future|Promise> promises); alias parallel
+	static Future all(Future|Promise var_args...); alias parallel
+}
+
+interface Future {
+	Object value;
+	Error error;
+
+	bool isResolved();
+	bool isRejected();
+	bool isCompleted();
+
+	Future then(Function resolved, Function rejected);
+	Future fin(Function finally);
+
+	Future timeout(Number ms);
+	Future spread();
+
+	Future get(String property);
+	Future put(String property, Object value);
+	Future method(String name, Object params...);
+	Future invoke(String name, Array params);
+	Future execute(Object params...);
+}
+
+*/
+
+;(function(factory) {
+
+	if (typeof define !== 'undefined' && define.amd)
+		define(factory);
+	else if (typeof module !== 'undefined' && module.exports)
+		module.exports = factory();
+	else
+		window.Promise = factory();
+
+})(function() {
+	"use strict";
 
 	var slice = Array.prototype.slice;
 
-	function asyncCall(funct, scope, args) {
-		setTimeout(function() {
-			funct.apply(scope, args);
-		});
-	}
-
-	function PromiseError(type, originalError, index) {
-		var message = 'Error on ' + type +
-			' promise execution at index [' + index + ']';
-
-		Error.call(this, message);
-
-		this.child = originalError;
-		this.index = index;
-		this.message = message;
-	}
-
-	/**
-	 * Type to control the Future
-	 */
 	function Promise() {
-		this._future = new Future();
+		this.future = new Future();
 	}
 
 	Promise.prototype = {
 		constructor: Promise,
 
-		/**
-		 * Invokes any callback added to .onDone() and .onFinally() to the future.
-		 *
-		 * @param var_args <Object> As many arguments as should be passed to the callbacks.
-		 */
-		done: function(/*var_args*/) {
-			var args = slice.call(arguments);
-			this.getFuture()._arrived('success', args);
+		resolve: function(value) {
+			if (this.future.state !== 'unfulfilled') return;
+
+			if (value instanceof Future)
+				return value.then(this.resolve.bind(this), this.reject.bind(this));
+
+			this.future.value = value;
+			this.future.state = 'fulfilled';
+			this.future._cbk.forEach(function(callback) {
+				callback();
+			});
 		},
 
-		/**
-		 * Invokes any callback added to .onError() and .onFinally() to the future.
-		 *
-		 * @param var_args <Object> As many arguments as should be passed to the callbacks.
-		 */
-		fail: function(/*var_args*/) {
-			var args = slice.call(arguments);
-			this.getFuture()._arrived('failed', args);
-		},
+		reject: function(error) {
+			if (this.future.state !== 'unfulfilled') return;
 
-		/**
-		 * Access to the future realted to this promise.
-		 *
-		 * @returns <Future> The future this promise will trigger.
-		 */
-		getFuture: function() {
-			return this._future;
+			this.future.error = error;
+			this.future.state = 'failed';
+			this.future._cbk.forEach(function(callback) {
+				callback();
+			});
 		}
 	};
 
-	/**
-	 * Creates and return a promise already done.
-	 * Any callback added to the future of this promise will be executed inmediately in a setTimeout().
-	 *
-	 * @param var_args <Object> Arguments to pass to the .done() method of the promise.
-	 * @returns <Future> The future of the done promise.
-	 */
-	Promise.done = function(/*var_args*/) {
-		var a = new Promise;
-		a.done.apply(a, arguments);
-		return a.getFuture();
+	Promise.resolved = function(value) {
+		var prom = new Promise();
+		prom.resolve(value);
+		return prom.future;
 	};
 
-	/**
-	 * Creates and return a promise already failed.
-	 * Any callback added to the future of this promise will be executed inmediately in a setTimeout().
-	 *
-	 * @param var_args <Object> Arguments to pass to the .fail() method of the promise.
-	 * @returns <Future> The future of the failed promise.
-	 */
-	Promise.failed = function(/*var_args*/) {
-		var a = new Promise;
-		a.fail.apply(a, arguments);
-		return a.getFuture();
+	Promise.rejected = function(error) {
+		var prom = new Promise();
+		prom.reject(error);
+		return prom.future;
 	};
 
+	Promise.normalize = Promise.when = function(value) {
+		if (value instanceof Promise)
+			value = value.future;
 
-	function succeed(item) {
-		return item.hasSucceed();
+		return value instanceof Future ? value : Promise.resolved(value);
+	};
+
+	function funct(name) {
+		var args = slice.call(arguments, 1);
+		return function(item) {
+			return item[name].apply(item, args.concat(arguments));
+		};
 	}
-
-	/**
-	 * Returns a future to be triggered when every passed future is completed.
-	 * If any future fails the returned future will fail too.
-	 *
-	 * @param var_args <Future> Futures to wait.
-	 * @returns <Future> The new future.
-	 */
+	function prop(name) {
+		return function(item) {
+			return item[name];
+		};
+	}
 	Promise.all = Promise.parallel = function(futures) {
-		if (arguments.length !== 1)
+		if (!(futures instanceof Array))
 			futures = slice.call(arguments);
 
 		if (!futures.length)
-			return Promise.done();
-
-		futures = futures.map(function(future) {
-			return future.getFuture ? future.getFuture() : future;
-		});
+			return Promise.resolved([]);
 
 		var promise = new Promise();
-		var values = [];
+		futures.map(Promise.normalize).forEach(funct('then', function() {
+			if (futures.every(funct('isResolved')))
+				promise.resolve(futures.map(prop('value')));
+		}, promise.reject.bind(promise)));
 
-		futures.forEach(function(future, index) {
-			future.then(function() {
-				values[index] = slice.call(arguments);
-				if (futures.every(succeed))
-					promise.done.apply(promise, values);
-			}, function(error) {
-				promise.fail(new PromiseError('parallel', error, index));
-			});
-		});
-
-		return promise.getFuture();
+		return promise.future;
 	};
 
-	/**
-	 * Executes a list of callbacks secuentially.
-	 * The value returned by a callback will be passed to the next one.
-	 * If any callback returns a future it will
-	 *   wait until it is completed and pass it's result to the next callback.
-	 * If any callback returns a future than fails the returned future will fail too.
-	 *
-	 * @param callbacks <Array<Function>> The list of callbacks.
-	 * @param scope <Object> The scope for every callback.
-	 * @returns <Future> The created future.
-	 */
-	Promise.serial = function(callbacks, scope) {
-		if (!callbacks || callbacks.length === 0)
-			return Promise.done();
 
-		var promise = new Promise();
-
-		setTimeout(function() {
-			next(callbacks, scope, 0, promise, callbacks[0].call(scope));
-		});
-
-		return promise.getFuture();
-	};
-
-	function next(stack, scope, index, promise, value) {
-		index++;
-
-		if (index >= stack.length)
-			return promise.done(value);
-
-		if (!(value instanceof Future))
-			return next(stack, scope, index, promise, stack[index].call(scope, value));
-
-		value.then(function() {
-			next(stack, scope, index, promise, stack[index].apply(scope, arguments));
-		}, function(error) {
-			promise.fail(new PromiseError(' serial ', error, index));
-		});
+	function Future() {
+		this.state = 'unfulfilled';
+		this._cbk = [];
 	}
 
-	/**
-	 * Contains the callbacks waiting the promise to be completed
-	 */
-	function Future() {
-		this._args = null;
-		this._flat = false;
-		this._fn = {
-			'success': [],
-			'failed': [],
-			'finally': []
-		};
+	function invokeCallback(callback, value, promise, promiseMethod) {
+		if (typeof callback !== 'function')
+			return promise[promiseMethod](value);
+
+		try {
+			promise.resolve(callback(value));
+		} catch(err) {
+			promise.reject(err);
+		}
 	}
 
 	Future.prototype = {
 		constructor: Future,
 
-		_add: function(type, callback, scope) {
-			if (!callback) {
-				console.warn("No callback passed");
-			} else if (this._fn[type] === true) {
-				asyncCall(callback, scope, this._args);
-			} else if (this._fn[type]) {
-				this._fn[type].push({
-					callback: callback,
-					scope: scope
-				});
-			}
-			return this;
+		isResolved: function() {
+			return this.state === 'fulfilled';
 		},
 
-		_arrived: function(type, args) {
-			if (this.isCompleted())
-				throw new Error('Future already arrived!');
-
-			function invoke(i) {
-				i.callback.apply(i.scope, args);
-			}
-
-			var callbacks = this._fn[type].concat(this._fn['finally']);
-
-			this._fn = {
-				'success': false,
-				'failed': false,
-				'finally': true
-			};
-
-			this._args = args;
-			this._fn[type] = true;
-
-			callbacks.forEach(invoke);
+		isRejected: function() {
+			return this.state === 'failed';
 		},
 
-		/**
-		 * Returns true if the promise is done or failed.
-		 *
-		 * @returns <bool>
-		 */
 		isCompleted: function() {
-			return this._fn['finally'] === true;
+			return this.state !== 'unfulfilled';
 		},
 
-		/**
-		 * Returns true if the promise has failed.
-		 *
-		 * @returns <bool>
-		 */
-		hasFailed: function() {
-			return this._fn['failed'] === true
-		},
-
-		/**
-		 * Returns true if the promise has succeed.
-		 *
-		 * @returns <bool>
-		 */
-		hasSucceed: function() {
-			return this._fn['success'] === true
-		},
-
-		/**
-		 * Adds a callback to be executed if the promise succeeds.
-		 *
-		 * @param callback <Function> The callback to execute.
-		 * @param scope <Object> The scope for the callback.
-		 * @returns <Future> Itself. Chainable.
-		 */
-		onDone: function(callback, scope) {
-			return this._add('success', callback, scope);
-		},
-
-		/**
-		 * Adds a callback to be executed if the promise fails.
-		 *
-		 * @param callback <Function> The callback to execute.
-		 * @param scope <Object> The scope for the callback.
-		 * @returns <Future> Itself. Chainable.
-		 */
-		onError: function(callback, scope) {
-			return this._add('failed', callback, scope);
-		},
-
-		/**
-		 * Adds a callback to be executed if the promise fails or succeeds.
-		 *
-		 * @param callback <Function> The callback to execute.
-		 * @param scope <Object> The scope for the callback.
-		 * @returns <Future> Itself. Chainable.
-		 */
-		onFinally: function(callback, scope) {
-			return this._add('finally', callback, scope);
-		},
-
-		/**
-		 * Adds many callback types at once.
-		 * This method does not recive scope for callbacks.
-		 *
-		 * @param success <Function> Callback to be executed if the promise succeeds.
-		 * @param error <Function> Callback to be executed if the promise fails.
-		 * @param fin <Function> Callback to be executed when the promise is completed.
-		 */
-		then: function(success, error, fin) {
-			if (success)
-				this.onDone(success);
-
-			if (error)
-				this.onError(error);
-
-			if (fin)
-				this.onFinally(fin);
-		},
-
-		/**
-		 * Returns a new future who will be fired when this future is completed
-		 *   but the passed value will be the values returned by the adapter function.
-		 *
-		 * @param adapter <Function> Function than adapts the values. Will recive
-		 *    the same arguments a normal callback will recive and the returned value
-		 *    will be passed to the new future. If the returned value is a array they
-		 *    will be passed as arguments.
-		 * @returns <Future> The future with the adapted value.
-		 */
-		transform: function(adapter) {
+		then: function(resolved, rejected) {
+			var self = this;
 			var promise = new Promise();
 
-			this.then(function() {
-				var values = adapter.apply(null, arguments);
+			function wrapper() {
+				if (self.state === 'fulfilled')
+					invokeCallback(resolved, self.value, promise, 'resolve');
+				else
+					invokeCallback(rejected, self.error, promise, 'reject');
+			}
 
-				if (Object.prototype.toString.call(values) !== '[object Array]')
-					values = [values];
+			if (this.state === 'unfulfilled')
+				this._cbk.push(wrapper);
+			else
+				setTimeout(wrapper, 0);
 
-				promise.done.apply(promise, values);
-			}, function() {
-				promise.fail.apply(promise, arguments);
-			});
-
-			return promise.getFuture();
+			return promise.future;
 		},
 
-		/**
-		 * Recives only the first item of each argument. Usefull on promises created
-		 *   by Promise.parallel who only recive one argument per promise.
-		 *
-		 * @returns <Future> The future who will handle the flatted results.
-		 */
-		flatResults: function() {
-			return this.transform(function() {
-				var args = slice.call(arguments);
-				var result = [];
-
-				for (var i = args.length; i--; )
-					result[i] = args[i][0];
-
-				return result;
+		fin: function(handler) {
+			return this.then(function(value) {
+				return Promise.normalize(handler()).then(function() { return value });
+			}, function(error) {
+				return Promise.normalize(handler()).then(function() { return Promise.rejected(error) });
 			});
+		},
+
+		spread: function(resolved, rejected) {
+			if (typeof resolved !== 'function')
+				return this.then(null, rejected);
+
+			return this.then(function(array) {
+				return resolved.apply(null, array);
+			}, rejected);
+		},
+
+		timeout: function(milliseconds) {
+			var promise = new Promise();
+			setTimeout(promise.reject.bind(promise, new Error('timeout')), milliseconds);
+			return promise.future;
+		},
+
+		get: function(prop) {
+			return this.then(function(value) { return value[prop] });
+		},
+
+		set: function(prop, value) {
+			return this.then(function(obj) { obj[prop] = value; return obj });
+		},
+
+		method: function(method/*, var_args*/) {
+			return this.invoke(method, slice.call(arguments, 1));
+		},
+
+		invoke: function(method, args) {
+			return this.then(function(value) { return value[method].apply(value, args); });
+		},
+
+		execute: function(/* var_args */) {
+			var args = slice.call(arguments);
+			return this.then(function(value) { return value.apply(null, args) });
 		}
 	};
 
-	Promise.PromiseError = PromiseError;
-	Promise.Future = Future;
+	return Promise;
 
-	if (typeof module !== 'undefined' && module.exports)
-		module.exports = Promise;
-	else if (typeof define !== 'undefined' && define.amd)
-		define(function() { return Promise });
-	else
-		root.Promise = Promise;
-
-})(this);
+});

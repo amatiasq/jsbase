@@ -4,210 +4,415 @@ if (typeof module !== 'undefined' && module.exports === exports) {
 	var Promise = require('../src' + (process.env['CODE_COVERAGE'] ? '-cov' : '') + '/promise');
 }
 
-describe('Promise class', function() {
+describe('Promise module', function() {
 
-	var promise, future;
-	beforeEach(function() {
-		promise = new Promise();
-		future = promise.getFuture();
-	});
+	describe('Promise type', function() {
+		describe('#resolve method', function() {
 
+			var spy, sut;
+			beforeEach(function() {
+				spy = sinon.spy();
+				sut = new Promise();
+				sut.future.then(spy);
+			});
 
-	var shouldCall = [{
-		promise: 'done',
-		future: 'onDone'
-	}, {
-		promise: 'fail',
-		future: 'onError'
-	}, {
-		promise: 'done',
-		future: 'onFinally'
-	}, {
-		promise: 'fail',
-		future: 'onFinally'
-	}];
+			it('should do nothing if the promise is already completed', function() {
+				sut.reject();
+				sut.resolve();
+				expect(sut.future.state).toBe('failed');
+			});
+			it('should change the future state to "fulfilled"', function() {
+				sut.resolve();
+				expect(sut.future.state).toBe('fulfilled');
+			});
 
-	var shouldNotCall = [{
-		promise: 'done',
-		future: 'onError'
-	}, {
-		promise: 'fail',
-		future: 'onDone'
-	}];
-
-
-	describe('Adding listeners before the promise is complete...', function() {
-
-		shouldCall.forEach(function(config) {
-			var promiseMethod = config.promise;
-			var futureMethod = config.future;
-
-			it('should call the callback passed to .' + futureMethod +
-				'() method when .' + promiseMethod + '() is called', function() {
-
-				var scope = {};
-				var arg1 = {};
-				var arg2 = [];
-				var spy = sinon.spy();
-
-				future[futureMethod](spy, scope);
+			it('should call the first arguments passed to each #then call', function() {
 				expect(spy.called).toBeFalse();
-				promise[promiseMethod](arg1, arg2);
-
+				sut.resolve();
 				expect(spy.calledOnce).toBeTrue();
-				expect(spy.calledOn(scope)).toBeTrue();
-				expect(spy.calledWithExactly(arg1, arg2)).toBeTrue();
 			});
-		});
 
-		shouldNotCall.forEach(function(config) {
-			var promiseMethod = config.promise;
-			var futureMethod = config.future;
-
-			it('should not call .' + futureMethod +
-				'() listeners if .' + promiseMethod + '() is called', function() {
-
-				var spy = sinon.spy();
-				future[futureMethod](spy);
-				promise[promiseMethod]();
-				expect(spy.called).toBeFalse();
+			it('should pass its argument to the callbacks', function() {
+				sut.resolve('hola');
+				expect(spy.calledWithExactly('hola')).toBeTrue();
 			});
-		});
-	});
 
-
-	describe('Adding listeners after the promise is complete...', function() {
-
-		shouldCall.forEach(function(config) {
-			var promiseMethod = config.promise;
-			var futureMethod = config.future;
-
-			it('should call the callback passed to .' + futureMethod +
-				'() method when .' + promiseMethod + '() is called', function() {
-
-				var scope = {};
-				var arg1 = {};
-				var arg2 = [];
-				var spy = sinon.spy();
+			it('should call asynchronously the callbacks added after resolve method', function() {
 				var clock = sinon.useFakeTimers();
+				var otherSpy = sinon.spy();
+				sut.resolve('hola');
 
-				promise[promiseMethod](arg1, arg2);
-				future[futureMethod](spy, scope);
+				sut.future.then(otherSpy);
+				expect(otherSpy.called).toBeFalse();
 
-				expect(spy.called).toBeFalse();
 				clock.tick(20);
+				expect(otherSpy.calledOnce).toBeTrue();
+				expect(otherSpy.calledWithExactly('hola')).toBeTrue();
+				clock.restore();
+			});
 
+			it('should wait for it to complete if the recived value is a future', function() {
+				var clock = sinon.useFakeTimers();
+				var otherPromise = new Promise();
+				sut.resolve(otherPromise.future);
+				expect(spy.called).toBeFalse();
+
+				otherPromise.resolve('hola');
 				expect(spy.calledOnce).toBeTrue();
-				expect(spy.calledOn(scope)).toBeTrue();
-				expect(spy.calledWithExactly(arg1, arg2)).toBeTrue();
-
-				clock.restore();
+				expect(spy.calledWithExactly('hola')).toBeTrue();
 			});
 		});
 
-		shouldNotCall.forEach(function(config) {
-			var promiseMethod = config.promise;
-			var futureMethod = config.future;
+		describe('#reject method', function() {
 
-			it('should not call .' + futureMethod +
-				'() listeners if .' + promiseMethod + '() is called', function() {
+			var spy, sut;
+			beforeEach(function() {
+				spy = sinon.spy();
+				sut = new Promise();
+				sut.future.then(null, spy);
+			});
 
-				var spy = sinon.spy();
+			it('should do nothing if the promise is already completed', function() {
+				sut.resolve();
+				sut.reject();
+				expect(sut.future.state).toBe('fulfilled');
+			});
+			it('should change the future state to "failed"', function() {
+				sut.reject();
+				expect(sut.future.state).toBe('failed');
+			});
+
+			it('should call the first arguments passed to each #then call', function() {
+				expect(spy.called).toBeFalse();
+				sut.reject();
+				expect(spy.calledOnce).toBeTrue();
+			});
+
+			it('should pass its argument to the callbacks', function() {
+				sut.reject('hola');
+				expect(spy.calledWithExactly('hola')).toBeTrue();
+			});
+
+			it('should call asynchronously the callbacks added after reject method', function() {
 				var clock = sinon.useFakeTimers();
+				var otherSpy = sinon.spy();
+				sut.reject('hola');
 
-				future[futureMethod](spy);
-				promise[promiseMethod]();
+				sut.future.then(null, otherSpy);
+				expect(otherSpy.called).toBeFalse();
 
 				clock.tick(20);
-				expect(spy.called).toBeFalse();
+				expect(otherSpy.calledOnce).toBeTrue();
+				expect(otherSpy.calledWithExactly('hola')).toBeTrue();
 				clock.restore();
 			});
 		});
 	});
 
-	describe('Static methods', function() {
-		describe('#done method', function() {
-			it('should return a fulfilled future', function() {
-				var sut = Promise.done()
-				expect(sut).toBeInstanceOf(Promise.Future);
-				expect(sut.hasSucceed()).toBeTrue();
+	describe('Static Promise methods', function() {
+		it('#resolved method should return a promise resolved with the passed value', function() {
+			var sut = Promise.resolved('hola');
+			expect(sut.isResolved()).toBeTrue();
+			expect(sut.value).toBe('hola');
+		});
+		it('#rejected method should return a promise rejected with the passed error', function() {
+			var sut = Promise.rejected('hola');
+			expect(sut.isRejected()).toBeTrue();
+			expect(sut.error).toBe('hola');
+		});
+
+		describe('#normalize method', function() {
+			it('should return a future fulfilled with the argument if it\'s not a future or a promise', function() {
+				expect(Promise.normalize('hola').value).toBe('hola');
+			});
+			it('should return a future if the argument is a future and bind them', function() {
+				var clock = sinon.useFakeTimers();
+				var success = Promise.normalize(Promise.resolved('hola'));
+				var failed = Promise.normalize(Promise.rejected('mundo'));
+
+				clock.tick(20);
+				expect(success.value).toBe('hola');
+				expect(failed.error).toBe('mundo');
+				clock.restore();
 			});
 		});
 
-		describe('#failed method', function() {
-			it('should return a failed future', function() {
-				var sut = Promise.failed()
-				expect(sut).toBeInstanceOf(Promise.Future);
-				expect(sut.hasFailed()).toBeTrue();
+		describe('#all method', function() {
+			it('should return a resolved promise if no future is passed', function() {
+				expect(Promise.all().isResolved()).toBeTrue();
+			});
+
+			it('should return a future to be resoved when every passed future is resolved', function() {
+				var prom1 = new Promise();
+				var prom2 = new Promise();
+				var sut = Promise.all(prom1.future, prom2.future);
+
+				prom1.resolve();
+				expect(sut.isResolved()).toBeFalse();
+				prom2.resolve();
+				expect(sut.isResolved()).toBeTrue();
+			});
+
+			it('should pass a array with the values returned by the futures', function() {
+				var clock = sinon.useFakeTimers();
+				var spy = sinon.spy();
+				Promise.all(Promise.resolved('hola'), Promise.resolved('mundo')).then(spy);
+
+				clock.tick(20);
+				expect(spy.calledWith([ 'hola', 'mundo' ])).toBeTrue();
+				clock.restore();
+			});
+
+			it('should reject the promise if any future is rejected', function() {
+				var clock = sinon.useFakeTimers();
+				var sut = Promise.all(Promise.resolved(), Promise.rejected());
+
+				clock.tick(20);
+				expect(sut.isRejected()).toBeTrue();
+				clock.restore();
+			})
+		});
+	});
+
+	describe("Future type", function() {
+		describe('#then method returned future', function() {
+			var spy, promise;
+			beforeEach(function() {
+				spy = sinon.spy();
+				promise = new Promise();
+			});
+
+			it('should be fulfilled after the first future is fulfilled without exceptions', function() {
+				var sut = promise.future.then(function() { return 'hola'; });
+				promise.resolve();
+				expect(sut.value).toBe('hola');
+			});
+			it('should be fulfilled after the first future is rejected without exceptions', function() {
+				var sut = promise.future.then(null, function() { return 'hola'; });
+				promise.reject();
+				expect(sut.value).toBe('hola');
+			});
+
+			it('should be rejected after the first future is fulfilled but throws something', function() {
+				var sut = promise.future.then(function() { throw 'hola'; });
+				promise.resolve();
+				expect(sut.error).toBe('hola');
+			});
+			it('should be fulfilled after the first future is rejected but throws something', function() {
+				var sut = promise.future.then(null, function() { throw 'hola'; });
+				promise.reject();
+				expect(sut.error).toBe('hola');
+			});
+
+			it('should be fulfilled with the same value if the first future has no resolve handler', function() {
+				var sut = promise.future.then();
+				promise.resolve('hola');
+				expect(sut.value).toBe('hola');
+			});
+			it('should be rejected with the same error if the first future has no reject handler', function() {
+				var sut = promise.future.then();
+				promise.reject('hola');
+				expect(sut.error).toBe('hola');
 			});
 		});
 
-		describe('#parallel method', function() {
-			it('should return a done promise if empty array or no arg is passed', function() {
-				expect(Promise.parallel().hasSucceed()).toBeTrue();
-				expect(Promise.parallel([]).hasSucceed()).toBeTrue();
+		describe('State getters', function() {
+			var sut;
+			beforeEach(function() {
+				sut = new Promise();
 			});
 
-			it('should return a promise to be fulfilled when every passed promise has succeed', function() {
+			describe('#isResolved method', function() {
+				it('should return true if the promise is resolved', function() {
+					expect(sut.future.isResolved()).toBeFalse();
+					sut.resolve();
+					expect(sut.future.isResolved()).toBeTrue();
+				});
+				it('false otherwise', function() {
+					sut.reject();
+					expect(sut.future.isResolved()).toBeFalse();
+				});
+			});
+
+			describe('#isRejected method', function() {
+				it('should return true if the promise is rejected', function() {
+					expect(sut.future.isRejected()).toBeFalse();
+					sut.reject();
+					expect(sut.future.isRejected()).toBeTrue();
+				});
+				it('false otherwise', function() {
+					sut.resolve();
+					expect(sut.future.isRejected()).toBeFalse();
+				});
+			});
+
+			describe('#isCompleted method', function() {
+				it('should return true if the promise is resolved', function() {
+					sut.resolve();
+					expect(sut.future.isCompleted()).toBeTrue();
+				});
+				it('should return true if the promise is rejected', function() {
+					sut.reject();
+					expect(sut.future.isCompleted()).toBeTrue();
+				});
+				it('should return false otherwise', function() {
+					expect(sut.future.isCompleted()).toBeFalse();
+				})
+			});
+		});
+
+		describe('#timeout method', function() {
+			it('should reject the promise if it takes more than N milliseconds to resolve', function() {
 				var clock = sinon.useFakeTimers();
-				var sample1 = new Promise();
-				var sample2 = new Promise();
+				var sut = new Promise().future.timeout(100);
+				clock.tick(120);
+				expect(sut.state).toBe('failed');
+			});
+		});
 
-				var promiseSut = Promise.parallel(sample1, sample2);
-				var futureSut = Promise.parallel(sample1.getFuture(), sample2.getFuture());
+		describe('#spread method', function() {
+			it('should pass array items as arguments', function() {
+				var spy = sinon.spy();
+				var sut = new Promise();
+				sut.future.spread(spy);
+				sut.resolve([ 'hola', 'mundo' ]);
+				expect(spy.calledWithExactly('hola', 'mundo')).toBeTrue();
+			});
+		});
 
-				sample1.done();
-				sample2.done();
+		describe('#fin method', function() {
+			var sut, spy;
+			beforeEach(function() {
+				sut = new Promise();
+				spy = sinon.spy();
+			})
+
+			it('should call the callback if the promise is resolved', function() {
+				sut.future.fin(spy);
+				expect(spy.called).toBeFalse();
+				sut.resolve();
+				expect(spy.calledOnce).toBeTrue();
+			});
+
+			it('should call the callback if the promise is rejected', function() {
+				sut.future.fin(spy);
+				expect(spy.called).toBeFalse();
+				sut.reject();
+				expect(spy.calledOnce).toBeTrue();
+			});
+
+			it('should reject returned future if the handler throws an error', function() {
+				sut.future.fin(function() { throw 'hola' }).then(null, spy);
+				expect(spy.called).toBeFalse();
+				sut.reject();
+				expect(spy.calledOnce).toBeTrue();
+			});
+
+			it('should reject returned future if the handler returns a future than is rejected', function() {
+				var clock = sinon.useFakeTimers();
+				sut.future.fin(function() { return Promise.rejected('hola') }).then(null, spy);
+
+				sut.resolve();
 				clock.tick(20);
-
-				expect(promiseSut.hasSucceed()).toBeTrue();
-				expect(futureSut.hasSucceed()).toBeTrue();
+				expect(spy.calledOnce).toBeTrue();
+				expect(spy.calledWithExactly('hola')).toBeTrue();
 				clock.restore();
 			});
 
-			it('should pass the promises results as array arguments', function() {
+			it('should ignore returned value otherwise', function() {
 				var clock = sinon.useFakeTimers();
-				var sample1 = new Promise();
-				var sample2 = new Promise();
-				var sut = Promise.parallel(sample1, sample2);
-				var param11 = 'hola';
-				var param12 = 'mundo';
-				var param21 = 'cosa';
+				sut.future.fin(function() { return 'hola' }).then(spy);
+				sut.resolve('mundo');
 
-				sample1.done(param11, param12);
-				sample2.done(param21);
 				clock.tick(20);
-
-				var args;
-				sut.then(function() { args = arguments });
-				clock.tick(20);
-
-				expect(args[0][0]).toBe(param11);
-				expect(args[0][1]).toBe(param12);
-				expect(args[1][0]).toBe(param21);
+				expect(spy.calledOnce).toBeTrue();
+				expect(spy.calledWithExactly('mundo')).toBeTrue();
 				clock.restore();
 			});
+		});
 
-			describe('#flatResults instance method', function() {
-				it('should modify the recived arguments so only the first argument of each promise is passed to the final promise', function() {
-					var clock = sinon.useFakeTimers();
-					var sample1 = new Promise();
-					var sample2 = new Promise();
-					var sut = Promise.parallel(sample1, sample2).flatResults();
-					var param1 = 'hola';
-					var param2 = 'cosa';
+		describe('Modifier methods', function() {
+			var sut, spy;
+			beforeEach(function() {
+				spy = sinon.spy();
+				sut = new Promise();
+			});
 
-					sample1.done(param1);
-					sample2.done(param2);
-					clock.tick(20);
+			function failIfNotObject(action) {
+				it('should fall to error handler if the promise value is not an object', function() {
+					action();
+					sut.resolve();
+					expect(spy.called).toBeTrue();
+				});
+			}
 
-					var args;
-					sut.then(function() { args = arguments });
-					clock.tick(20);
+			describe('#get method', function() {
+				it('should return the value of the property of the promise value', function() {
+					sut.future.get('field').then(spy);
+					sut.resolve({ field: 'hola' });
+					expect(spy.calledWithExactly('hola')).toBeTrue();
+				});
+				failIfNotObject(function() {
+					sut.future.get('field').then(null, spy);
+				});
+			});
 
-					expect(args[0]).toBe(param1);
-					expect(args[1]).toBe(param2);
-					clock.restore();
+			describe('#set method', function() {
+				it('should set the property in the promise value', function() {
+					sut.future.set('field', 'hola').then(spy);
+					sut.resolve({});
+					expect(spy.calledWith({ field: 'hola' })).toBeTrue();
+				});
+				failIfNotObject(function() {
+					sut.future.set('field', 'hola').then(null, spy);
+				});
+			});
+
+			describe('#method method', function() {
+				it('should call the method of the promise value and return it\'s result', function() {
+					sut.future.method('join').then(spy);
+					sut.resolve([ 'hola', 'mundo' ]);
+					expect(spy.calledWithExactly('hola,mundo')).toBeTrue();
+				});
+				it('should pass extra args to the method', function() {
+	 				sut.future.method('join', '$').then(spy);
+					sut.resolve([ 'hola', 'mundo' ]);
+					expect(spy.calledWithExactly('hola$mundo')).toBeTrue();
+				});
+				failIfNotObject(function() {
+					sut.future.method('field', 'hola').then(null, spy);
+				});
+			});
+
+			describe('#invoke method', function() {
+				it('should call the method of the promise value and return it\'s result', function() {
+					sut.future.invoke('join').then(spy);
+					sut.resolve([ 'hola', 'mundo' ]);
+					expect(spy.calledWithExactly('hola,mundo')).toBeTrue();
+				});
+				it('should pass extra args to the method', function() {
+	 				sut.future.invoke('join', [ '$' ]).then(spy);
+					sut.resolve([ 'hola', 'mundo' ]);
+					expect(spy.calledWithExactly('hola$mundo')).toBeTrue();
+				});
+				failIfNotObject(function() {
+					sut.future.invoke('field', 'hola').then(null, spy);
+				});
+			});
+
+			describe('#execute method', function() {
+				it('should call the promise value and return it\'s result', function() {
+					sut.future.execute().then(spy);
+					sut.resolve(function() { return 'hola' });
+					expect(spy.calledWithExactly('hola')).toBeTrue();
+				});
+				it('should pass extra args to the method', function() {
+					sut.future.execute('mundo').then(spy);
+					sut.resolve(function(append) { return 'hola' + append });
+					expect(spy.calledWithExactly('holamundo')).toBeTrue();
+				});
+				failIfNotObject(function() {
+					sut.future.execute().then(null, spy);
 				});
 			});
 		});

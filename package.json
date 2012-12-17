@@ -13,6 +13,7 @@
 
 	},
 	"scripts": {
-		"test": "unused src/* && leaky src && promise-tests all test/promise-tests-adapter && mocha"
+		"test": "unused src/* && leaky src && promise-tests all test/promise-tests-adapter && promise-tests all test/promise.es5-tests-adapter && mocha",
+		"install": "git clone git://github.com/visionmedia/node-jscoverage.git && cd node-jscoverage && ./configure && make"
 	}
 }

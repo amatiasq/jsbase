@@ -1,7 +1,7 @@
 if (typeof module !== 'undefined' && module.exports === exports) {
 	var sinon = require('sinon');
 	var expect = require('../lib/expect');
-	var Promise = require('../src' + (process.env['CODE_COVERAGE'] ? '-cov' : '') + '/promise');
+	var Promise = require('../src' + (process.env['CODE_COVERAGE'] ? '-cov' : '') + '/promise.es5');
 }
 
 describe('Promise module', function() {

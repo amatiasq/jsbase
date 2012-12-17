@@ -346,14 +346,14 @@ describe('Promise module', function() {
 				});
 			}
 
-			describe('#get method', function() {
+			describe('#prop method', function() {
 				it('should return the value of the property of the promise value', function() {
-					sut.future.get('field').then(spy);
+					sut.future.prop('field').then(spy);
 					sut.resolve({ field: 'hola' });
 					expect(spy.calledWithExactly('hola')).toBeTrue();
 				});
 				failIfNotObject(function() {
-					sut.future.get('field').then(null, spy);
+					sut.future.prop('field').then(null, spy);
 				});
 			});
 

@@ -10,6 +10,7 @@ interface Promise {
 
 	static Future all(Array<Future|Promise> promises); alias parallel
 	static Future all(Future|Promise var_args...); alias parallel
+*	static Future wrap(fn, scope, args);
 }
 
 interface Future {
@@ -26,7 +27,7 @@ interface Future {
 	Future timeout(Number ms);
 	Future spread();
 
-	Future get(String property);
+	Future prop(String property);
 	Future put(String property, Object value);
 	Future method(String name, Object params...);
 	Future invoke(String name, Array params);
@@ -206,7 +207,7 @@ interface Future {
 			return promise.future;
 		},
 
-		get: function(prop) {
+		prop: function(prop) {
 			return this.then(function(value) { return value[prop] });
 		},
 

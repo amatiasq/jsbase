@@ -198,7 +198,7 @@ describe('Promise module', function() {
 				promise.resolve();
 				expect(sut.error).toBe('hola');
 			});
-			it('should be fulfilled after the first future is rejected but throws something', function() {
+			it('should be rejected after the first future is rejected but throws something', function() {
 				var sut = promise.future.then(null, function() { throw 'hola'; });
 				promise.reject();
 				expect(sut.error).toBe('hola');

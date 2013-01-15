@@ -119,7 +119,8 @@ interface Future {
 			return Promise.resolved([]);
 
 		var promise = new Promise();
-		futures.map(Promise.normalize).forEach(funct('then', function() {
+		futures = futures.map(Promise.normalize)
+		futures.forEach(funct('then', function() {
 			if (futures.every(funct('isResolved')))
 				promise.resolve(futures.map(prop('value')));
 		}, promise.reject.bind(promise)));
@@ -136,6 +137,9 @@ interface Future {
 	function invokeCallback(callback, value, promise, promiseMethod) {
 		if (typeof callback !== 'function')
 			return promise[promiseMethod](value);
+
+		if (Promise.debug)
+			return promise.resolve(callback(value));
 
 		try {
 			promise.resolve(callback(value));
@@ -199,6 +203,10 @@ interface Future {
 			var promise = new Promise();
 			setTimeout(promise.reject.bind(promise, new Error('timeout')), milliseconds);
 			return promise.future;
+		},
+
+		flat: function() {
+			return this.then(function(value) { return [].concat.apply([], value) });
 		},
 
 		prop: function(prop) {

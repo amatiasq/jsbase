@@ -1,11 +1,11 @@
 if (typeof module !== 'undefined' && module.exports === exports) {
 	var sinon = require('sinon');
 	var expect = require('../lib/expect');
-	var extend = require('../src' + (process.env['CODE_COVERAGE'] ? '-cov' : '') + '/extend');
+	var extend = require('../src' + (process.env.CODE_COVERAGE ? '-cov' : '') + '/extend');
 }
 
-describe("extend() function", function() {
-	"use strict";
+describe('extend() function', function() {
+	'use strict';
 
 	function testBase(creator) {
 		it('should add every method I pass to the function to the created Type', function() {
@@ -17,10 +17,9 @@ describe("extend() function", function() {
 
 		it('should provide the method with a this.base() function to call the overwitten method', function() {
 			var spy = sinon.spy();
-			function a() { this.base(); }
 
 			var SubType = creator({ a: spy });
-			var FinalType = creator({ a: a }, SubType);
+			var FinalType = creator({ a: function() { this.base() } }, SubType);
 
 			var sut = new FinalType();
 			sut.a();
@@ -30,11 +29,9 @@ describe("extend() function", function() {
 
 		it('should return the value returned by the parent method if I return the result of this.base()', function() {
 			var result = 'hello!';
-			function a_original() { return result };
-			function a_overwrite() { return this.base(); }
 
-			var SubType = creator({ a: a_original });
-			var FinalType = creator({ a: a_overwrite }, SubType);
+			var SubType = creator({ a: function() { return result } });
+			var FinalType = creator({ a: function() { return this.base() } }, SubType);
 
 			var sut = new FinalType();
 			expect(sut.a()).toBe(result);
@@ -87,10 +84,10 @@ describe("extend() function", function() {
 			var Sub;
 			beforeEach(function() {
 				Sub = Type.extend();
-			})
+			});
 
 			testBase(function(config) {
-				Sub.inject(config)
+				Sub.inject(config);
 				return Sub;
 			});
 		});
@@ -103,40 +100,40 @@ describe("extend() function", function() {
 			});
 
 			testBase(function(config, Base) {
-				return (Base || Type).extend(config)
+				return (Base || Type).extend(config);
 			});
 		});
 	}
 
-	describe("Returned object should be a Type", function() {
+	describe('Returned object should be a Type', function() {
 		testType(extend(Object), Object);
 
 		describe('Who also can create SubTypes recursively', function() {
 			var Type = extend(Object);
 			testType(Type.extend(), Type);
-		})
+		});
 	});
 });
 	/*
 
-	describe(".extend() method", function() {
+	describe('.extend() method', function() {
 
-		describe("empty class creation", function() {
+		describe('empty class creation', function() {
 			var test = Base.extend();
 
-			it("should be a function and must have the extend method", function() {
+			it('should be a function and must have the extend method', function() {
 				expect(test).toBeFunction();
 				expect(test.extend).toBeFunction();
 			});
 
-			it("should the prototype of the result function should be ", function() {
+			it('should the prototype of the result function should be ', function() {
 				expect(Object.getPrototypeOf(test.prototype)).toBe(Base.prototype);
 			});
 		});
 
-		describe("class creation with methods", function() {
+		describe('class creation with methods', function() {
 
-			describe("must create a class with the given methods", function() {
+			describe('must create a class with the given methods', function() {
 				var original = function() { };
 				var test = Base.extend({
 					method1: original,
@@ -146,19 +143,19 @@ describe("extend() function", function() {
 				expect(test.prototype.method1).toBe(original);
 				expect(test.prototype.method2).toBe(original);
 
-				it("instances should have those methods", function() {
+				it('instances should have those methods', function() {
 					var a = new test();
 					expect(a.method1).toBe(original);
 					expect(a.method2).toBe(original);
 				});
 
-				it("should not modify the parent class", function() {
+				it('should not modify the parent class', function() {
 					expect(Base.prototype.method1).not.toBe(original);
 					expect(Base.prototype.method2).not.toBe(original);
 				});
 			});
 
-			it("should provide this.proto to access the parent class prototype", function() {
+			it('should provide this.proto to access the parent class prototype', function() {
 				var proto;
 				var test = Base.extend({
 					someMethod: function() {
@@ -172,14 +169,14 @@ describe("extend() function", function() {
 
 		});
 
-		describe("subclases generation", function() {
+		describe('subclases generation', function() {
 
 			var First = Base.extend({
 				someMethod: function() { }
 			});
 			First.staticMethod = function() { };
 
-			describe("should extend the class just as Base.extend", function() {
+			describe('should extend the class just as Base.extend', function() {
 				var test = First.extend({
 					otherMethod: function() { }
 				});
@@ -187,21 +184,21 @@ describe("extend() function", function() {
 
 				expect(a.otherMethod).toBeFunction();
 
-				it("should inherit methods from First class", function() {
+				it('should inherit methods from First class', function() {
 					expect(a.someMethod).toBeFunction();
 				});
 
-				it("should not modify the parent class", function() {
+				it('should not modify the parent class', function() {
 					expect(First.prototype.otherMethod).not.toBeFunction();
 				});
 			});
 
-			it("should extend event static properties", function() {
+			it('should extend event static properties', function() {
 				var temp = First.extend();
 				expect(temp.staticMethod).toBe(First.staticMethod);
 			});
 
-			describe("this.base() functionallity", function() {
+			describe('this.base() functionallity', function() {
 				var mock;
 
 				beforeEach(function() {
@@ -212,7 +209,7 @@ describe("extend() function", function() {
 					mock.restore();
 				})
 
-				it("must throw a exception if we try to use this.base() in a non-override method", function() {
+				it('must throw a exception if we try to use this.base() in a non-override method', function() {
 					expect(function() {
 						Base.extend({
 							unexisting: function() {
@@ -222,7 +219,7 @@ describe("extend() function", function() {
 					}).toThrowError();
 				});
 
-				it("should call the parent method", function() {
+				it('should call the parent method', function() {
 					mock.expects('someMethod').once();
 
 					var test = First.extend({
@@ -235,13 +232,13 @@ describe("extend() function", function() {
 					mock.verify();
 				});
 
-				it("should pass the arguments to the parent method", function() {
+				it('should pass the arguments to the parent method', function() {
 					var obj = {};
 					mock.expects('someMethod').once().withExactArgs(1, 'asdf', obj);
 
 					var test = First.extend({
 						someMethod: function() {
-							this.base(1, "asdf", obj);
+							this.base(1, 'asdf', obj);
 						}
 					});
 					new test().someMethod();

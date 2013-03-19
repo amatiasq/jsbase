@@ -5,15 +5,15 @@
 	"author": "A. Matías Quezada <amatiasq@gmail.com>",
 	"dependencies": {},
 	"devDependencies": {
-		"unused": "0.2.x",
 		"leaky": "0.1.x",
 		"mocha": "1.7.x",
 		"sinon": "1.5.x",
+		"jshint": "1.1.x",
 		"promise-tests": "*"
 
 	},
 	"scripts": {
-		"test": "unused src/* && leaky src && promise-tests all test/promise-tests-adapter && promise-tests all test/promise.es5-tests-adapter && mocha",
+		"test": "jshint src test && leaky src && promise-tests all test/promise-tests-adapter && promise-tests all test/promise.es5-tests-adapter && mocha",
 		"install": "git clone git://github.com/visionmedia/node-jscoverage.git && cd node-jscoverage && ./configure && make"
 	}
 }

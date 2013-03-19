@@ -1,5 +1,28 @@
 /*
 
+promise() - creates a promise
+promise(value) - creates a resolved promise
+promise.rejected(error) - creates a rejected promise
+promise.all(prom1, prom2...) - waits all promises to complete
+
+[promise].future
+[promise].resolve(value)
+[promise].reject(error)
+
+[future].isResolved
+[future].isRejected
+[future].isCompleted
+
+[future].then(success, fail)
+[future].fin(finally);
+[future].spread(success, fail);
+
+[future].prop(name);
+[future].method(name, args);
+
+
+
+
 interface Promise {
 	void resolve(Object value);
 	void reject(Error err);
@@ -36,7 +59,8 @@ interface Future {
 
 */
 
-;(function(factory) {
+(function(factory) {
+	'use strict';
 
 	if (typeof define !== 'undefined' && define.amd)
 		define(factory);
@@ -46,7 +70,7 @@ interface Future {
 		window.Promise = factory();
 
 })(function() {
-	"use strict";
+	'use strict';
 
 	var slice = Array.prototype.slice;
 

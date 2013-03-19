@@ -1,3 +1,5 @@
+//jshint -W055
+
 /**
  * Provides:
  *     Function extend(Function parent, Object config);
@@ -15,7 +17,7 @@
  */
 
 (function(root) {
-	"use strict";
+	'use strict';
 
 	var has = Object.prototype.hasOwnProperty;
 
@@ -33,10 +35,12 @@
 	 */
 	function wrap(funct, base) {
 		return function() {
-			var a = this.base; this.base = base;
+			var a = this.base;
+			this.base = base;
 			// If you are here and don't know what to do, debug into the next line
 			var result = funct.apply(this, arguments);
-			return (this.base = a), result;
+			this.base = a;
+			return result;
 		};
 	}
 
@@ -82,7 +86,7 @@
 		inject(ctor, Parent);
 
 		// Extend parent prototype
-		intermediate.prototype = Parent.prototype
+		intermediate.prototype = Parent.prototype;
 		ctor.prototype = new intermediate;
 
 		// Apply new methods

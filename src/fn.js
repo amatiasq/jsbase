@@ -6,13 +6,15 @@
  */
 
 (function(root) {
-	"use strict";
+	'use strict';
 
 	function array(obj, from) {
 		return Array.prototype.slice.call(obj, from);
 	}
 
 	function prop(name, value) {
+		// jsHint warns about returning the result of a asignation on the second function
+		//jshint -W093
 		return arguments.length === 1 ?
 			function(item) { return item[name] } :
 			function(item) { return item[name] = value };

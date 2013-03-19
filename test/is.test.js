@@ -1,10 +1,15 @@
+// jsHint warns about the use of new Object(), new Boolean(), new Number(), etc...
+// also warns about sinon, declared but never used.
+//jshint -W009, -W010, -W053, -W098
+
 if (typeof module !== 'undefined' && module.exports === exports) {
 	var sinon = require('sinon');
 	var expect = require('../lib/expect');
-	var Lang = require('../src' + (process.env['CODE_COVERAGE'] ? '-cov' : '') + '/is');
+	var Lang = require('../src' + (process.env.CODE_COVERAGE ? '-cov' : '') + '/is');
 }
 
 describe('Lang class', function() {
+	'use strict';
 
 	var types = [
 		Object,
@@ -22,13 +27,12 @@ describe('Lang class', function() {
 		[ null, undefined ],
 		[ true, false, new Boolean(), new Boolean(true), new Boolean(false) ],
 		[ 0, 1, 2.3, -0, -1, -2.3, new Number(), new Number(1) ],
-		[ "", "hi", "!$%&/()=", new String(), new String(""), new String("adf") ],
+		[ '', 'hi', '!$%&/()=', new String(), new String(''), new String('adf') ],
 		[ function() { } ],
 		[ [], ['a',1,true], new Array(), new Array(1), new Array('a',1,true) ],
 		[ new Date() ]
 	];
 
-	eachValidValue(function(a, b, count) { eachValidValue.count = count });
 	function eachValidValue(callback) {
 		var count = 0,
 			i, len, j, jlen;
@@ -44,8 +48,8 @@ describe('Lang class', function() {
 			for (j = 0, jlen = validValues[i].length; j < jlen; j++)
 				callback(types[i], validValues[i][j], ++count);
 	}
+	eachValidValue(function(a, b, count) { eachValidValue.count = count });
 
-	eachInvalidValue(function(a, b, count) { eachInvalidValue.count = count });
 	function eachInvalidValue(callback) {
 		var count = 0,
 			i, len, j, jlen, k, klen;
@@ -61,6 +65,7 @@ describe('Lang class', function() {
 					for (k = 0, klen = validValues[j].length; k < klen; k++)
 						callback(types[i], validValues[j][k], ++count);
 	}
+	eachInvalidValue(function(a, b, count) { eachInvalidValue.count = count });
 
 
 	describe('#is method', function() {
@@ -77,9 +82,9 @@ describe('Lang class', function() {
 					expect(Lang.is({}, type)).toBeTrue();
 				});
 				it('unless value is null or undefined', function() {
-					var undefined;
+					var undef;
 					expect(Lang.is(null, type)).toBeFalse();
-					expect(Lang.is(undefined, type)).toBeFalse();
+					expect(Lang.is(undef, type)).toBeFalse();
 				});
 			});
 

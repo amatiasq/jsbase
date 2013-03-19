@@ -16,10 +16,9 @@
  */
 
 (function(root) {
-	"use strict";
+	'use strict';
 
-	var undefined,
-		toString = Object.prototype.toString,
+	var toString = Object.prototype.toString,
 		ctor = /\[object (\w+)\]/;
 
 	function typeOf(value) {
@@ -35,9 +34,9 @@
 	 */
 	function is(value, type) {
 		if (type === null)
-			return value === null || value === undefined;
+			return value == null;
 
-		if (value === null || value === undefined)
+		if (value == null)
 			return false;
 
 		if (typeof type.isTypeOf === 'function')

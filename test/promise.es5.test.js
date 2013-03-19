@@ -1,10 +1,11 @@
 if (typeof module !== 'undefined' && module.exports === exports) {
 	var sinon = require('sinon');
 	var expect = require('../lib/expect');
-	var Promise = require('../src' + (process.env['CODE_COVERAGE'] ? '-cov' : '') + '/promise.es5');
+	var Promise = require('../src' + (process.env.CODE_COVERAGE ? '-cov' : '') + '/promise.es5');
 }
 
 describe('Promise module', function() {
+	'use strict';
 
 	describe('Promise type', function() {
 		describe('#resolve method', function() {
@@ -52,7 +53,6 @@ describe('Promise module', function() {
 			});
 
 			it('should wait for it to complete if the recived value is a future', function() {
-				var clock = sinon.useFakeTimers();
 				var otherPromise = new Promise();
 				sut.resolve(otherPromise.future);
 				expect(spy.called).toBeFalse();
@@ -170,11 +170,11 @@ describe('Promise module', function() {
 				clock.tick(20);
 				expect(sut.isRejected()).toBeTrue();
 				clock.restore();
-			})
+			});
 		});
 	});
 
-	describe("Future type", function() {
+	describe('Future type', function() {
 		describe('#then method returned future', function() {
 			var spy, promise;
 			beforeEach(function() {
@@ -257,7 +257,7 @@ describe('Promise module', function() {
 				});
 				it('should return false otherwise', function() {
 					expect(sut.future.isCompleted()).toBeFalse();
-				})
+				});
 			});
 		});
 
@@ -285,7 +285,7 @@ describe('Promise module', function() {
 			beforeEach(function() {
 				sut = new Promise();
 				spy = sinon.spy();
-			})
+			});
 
 			it('should call the callback if the promise is resolved', function() {
 				sut.future.fin(spy);
@@ -375,7 +375,7 @@ describe('Promise module', function() {
 					expect(spy.calledWithExactly('hola,mundo')).toBeTrue();
 				});
 				it('should pass extra args to the method', function() {
-	 				sut.future.method('join', '$').then(spy);
+					sut.future.method('join', '$').then(spy);
 					sut.resolve([ 'hola', 'mundo' ]);
 					expect(spy.calledWithExactly('hola$mundo')).toBeTrue();
 				});
@@ -391,7 +391,7 @@ describe('Promise module', function() {
 					expect(spy.calledWithExactly('hola,mundo')).toBeTrue();
 				});
 				it('should pass extra args to the method', function() {
-	 				sut.future.invoke('join', [ '$' ]).then(spy);
+					sut.future.invoke('join', [ '$' ]).then(spy);
 					sut.resolve([ 'hola', 'mundo' ]);
 					expect(spy.calledWithExactly('hola$mundo')).toBeTrue();
 				});

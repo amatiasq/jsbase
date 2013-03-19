@@ -1,10 +1,14 @@
+// Long lines permited
+//jshint -W101
+
 if (typeof module !== 'undefined' && module.exports === exports) {
 	var sinon = require('sinon');
 	var expect = require('../lib/expect');
-	var Emitter = require('../src' + (process.env['CODE_COVERAGE'] ? '-cov' : '') + '/emitter');
+	var Emitter = require('../src' + (process.env.CODE_COVERAGE ? '-cov' : '') + '/emitter');
 }
 
 describe('Emitter type', function() {
+	'use strict';
 
 	var sampleEvent = 'dummy';
 	var anotherEvent = 'another';
@@ -30,7 +34,7 @@ describe('Emitter type', function() {
 	});
 
 	it('should not crash if I fire a non-listened signal', function() {
-		sut.emit(anotherEvent)
+		sut.emit(anotherEvent);
 	});
 
 	describe('When I add a listener...', function() {

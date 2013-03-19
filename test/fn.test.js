@@ -1,10 +1,11 @@
 if (typeof module !== 'undefined' && module.exports === exports) {
 	var sinon = require('sinon');
 	var expect = require('../lib/expect');
-	var fn = require('../src' + (process.env['CODE_COVERAGE'] ? '-cov' : '') + '/fn');
+	var fn = require('../src' + (process.env.CODE_COVERAGE ? '-cov' : '') + '/fn');
 }
 
 describe('Functional helpers', function() {
+	'use strict';
 
 	describe('#prop function', function() {
 
@@ -30,7 +31,7 @@ describe('Functional helpers', function() {
 			var sut = fn.prop('key', 'hola');
 			it('should assing the property of its argument if #prop recives two arguments', function() {
 				var obj = {};
-				sut(obj)
+				sut(obj);
 				expect(obj.key).toBe('hola');
 			});
 			it('should return the new property value if #prop recives two arguments', function() {
@@ -88,6 +89,6 @@ describe('Functional helpers', function() {
 	describe('#pipe function', function() {
 		it('should return its first argument', function() {
 			expect(fn.pipe('hola')).toBe('hola');
-		})
+		});
 	});
 });

@@ -36,7 +36,8 @@ interface Future {
 
 */
 
-;(function(factory) {
+(function(factory) {
+	'use strict';
 
 	if (typeof define !== 'undefined' && define.amd)
 		define(factory);
@@ -46,7 +47,7 @@ interface Future {
 		window.Promise = factory();
 
 })(function() {
-	"use strict";
+	'use strict';
 
 	var slice = Array.prototype.slice;
 
@@ -119,7 +120,7 @@ interface Future {
 			return Promise.resolved([]);
 
 		var promise = new Promise();
-		futures = futures.map(Promise.normalize)
+		futures = futures.map(Promise.normalize);
 		futures.forEach(funct('then', function() {
 			if (futures.every(funct('isResolved')))
 				promise.resolve(futures.map(prop('value')));

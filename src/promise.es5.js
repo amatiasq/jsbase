@@ -1,64 +1,3 @@
-/*
-
-promise() - creates a promise
-promise(value) - creates a resolved promise
-promise.rejected(error) - creates a rejected promise
-promise.all(prom1, prom2...) - waits all promises to complete
-
-[promise].future
-[promise].resolve(value)
-[promise].reject(error)
-
-[future].isResolved
-[future].isRejected
-[future].isCompleted
-
-[future].then(success, fail)
-[future].fin(finally);
-[future].spread(success, fail);
-
-[future].prop(name);
-[future].method(name, args);
-
-
-
-
-interface Promise {
-	void resolve(Object value);
-	void reject(Error err);
-
-	static Future normalize(Promise|Object value); alias when
-	static Future resolved(Object value);
-	static Future rejected(Error err);
-
-	static Future all(Array<Future|Promise> promises); alias parallel
-	static Future all(Future|Promise var_args...); alias parallel
-*	static Future wrap(fn, scope, args);
-}
-
-interface Future {
-	Object value;
-	Error error;
-
-	bool isResolved();
-	bool isRejected();
-	bool isCompleted();
-
-	Future then(Function resolved, Function rejected);
-	Future fin(Function finally);
-
-	Future timeout(Number ms);
-	Future spread();
-
-	Future prop(String property);
-	Future put(String property, Object value);
-	Future method(String name, Object params...);
-	Future invoke(String name, Array params);
-	Future execute(Object params...);
-}
-
-*/
-
 (function(factory) {
 	'use strict';
 
@@ -71,6 +10,10 @@ interface Future {
 
 })(function() {
 	'use strict';
+
+	//
+	// HELPERS
+	//
 
 	var slice = Array.prototype.slice;
 
@@ -90,14 +33,98 @@ interface Future {
 			return item[name];
 		};
 	}
+	function invoke(fn) {
+		return fn();
+	}
+
+	function extend(target) {
+		slice.call(arguments, 1).forEach(function(source) {
+			Object.keys(source).forEach(function(key) {
+				var descriptor = Object.getOwnPropertyDescriptor(source, key);
+				Object.defineProperty(target, key, descriptor);
+			});
+		});
+		return target;
+	}
+
+	var setImmediate = window.setImmediate || function(fn) { setTimeout(fn, 0) };
+
+
+	//
+	// STATICS
+	//
+
+	function resolved(value) {
+		var prom = new Promise();
+		prom.resolve(value);
+		return prom.future;
+	}
+
+	function rejected(error) {
+		var prom = new Promise();
+		prom.reject(error);
+		return prom.future;
+	}
+
+	function normalize(value) {
+		if (value instanceof Promise)
+			value = value.future;
+
+		return value instanceof Future ? value : resolved(value);
+	}
+
+	function callbackWrapper(object, method) {
+		return function() {
+			var prom = new Promise();
+			object[method].apply(object, slice.call(arguments).concat(prom.callback(method)));
+			return prom.future;
+		};
+	}
+
+	function adapter(obj, methods) {
+		methods = methods || Object.keys(obj);
+		var adapter = Object.create(obj);
+		methods.forEach(function(method) {
+			adapter[method] = callbackWrapper(obj, method);
+		});
+		return adapter;
+	}
+
+	function all(futures) {
+		if (!(futures instanceof Array))
+			futures = slice.call(arguments);
+
+		if (!futures.length)
+			return resolved([]);
+
+		var promise = new Promise();
+		futures = futures.map(normalize);
+		futures.forEach(funct('then', function() {
+			if (futures.every(funct('isResolved')))
+				promise.resolve(futures.map(prop('value')));
+		}, promise.reject.bind(promise)));
+
+		return promise.future;
+	}
+
+
+	//
+	// PROMISE
+	//
 
 	function Promise() {
 		Object.defineProperty(this, 'future', { get: returner(new Future()) });
 	}
 
-	Promise.prototype = {
-		constructor: Promise,
+	extend(Promise, {
+		resolved: resolved,
+		rejected: rejected,
+		normalize: normalize,
+		adapter: adapter,
+		all: all,
+	});
 
+	extend(Promise.prototype, {
 		resolve: function(value) {
 			if (this.future.state !== 'unfulfilled') return;
 
@@ -106,9 +133,7 @@ interface Future {
 
 			this.future.value = value;
 			this.future.state = 'fulfilled';
-			this.future._cbk.forEach(function(callback) {
-				callback();
-			});
+			this.future._cbk.forEach(invoke);
 		},
 
 		reject: function(error) {
@@ -116,48 +141,23 @@ interface Future {
 
 			this.future.error = error;
 			this.future.state = 'failed';
-			this.future._cbk.forEach(function(callback) {
-				callback();
-			});
+			this.future._cbk.forEach(invoke);
+		},
+
+		callback: function(name) {
+			var self = this;
+			return function(err, result) {
+				console.log('Automatic callback invoked', name, err, result && result.toString());
+				if (err) self.reject(err);
+				else self.resolve(result);
+			};
 		}
-	};
+	});
 
-	Promise.resolved = function(value) {
-		var prom = new Promise();
-		prom.resolve(value);
-		return prom.future;
-	};
 
-	Promise.rejected = function(error) {
-		var prom = new Promise();
-		prom.reject(error);
-		return prom.future;
-	};
-
-	Promise.normalize = Promise.when = function(value) {
-		if (value instanceof Promise)
-			value = value.future;
-
-		return value instanceof Future ? value : Promise.resolved(value);
-	};
-
-	Promise.all = Promise.parallel = function(futures) {
-		if (!(futures instanceof Array))
-			futures = slice.call(arguments);
-
-		if (!futures.length)
-			return Promise.resolved([]);
-
-		var promise = new Promise();
-		futures = futures.map(Promise.normalize);
-		futures.forEach(funct('then', function() {
-			if (futures.every(funct('isResolved')))
-				promise.resolve(futures.map(prop('value')));
-		}, promise.reject.bind(promise)));
-
-		return promise.future;
-	};
-
+	//
+	// FUTURES
+	//
 
 	function Future() {
 		this.state = 'unfulfilled';
@@ -178,9 +178,7 @@ interface Future {
 		}
 	}
 
-	Future.prototype = {
-		constructor: Future,
-
+	extend(Future.prototype, {
 		isResolved: function() {
 			return this.state === 'fulfilled';
 		},
@@ -207,16 +205,16 @@ interface Future {
 			if (this.state === 'unfulfilled')
 				this._cbk.push(wrapper);
 			else
-				setTimeout(wrapper, 0);
+				setImmediate(wrapper);
 
 			return promise.future;
 		},
 
 		fin: function(handler) {
 			return this.then(function(value) {
-				return Promise.normalize(handler()).then(returner(value));
+				return normalize(handler()).then(returner(value));
 			}, function(error) {
-				return Promise.normalize(handler()).then(function() { return Promise.rejected(error) });
+				return normalize(handler()).then(returner(rejected(error)) });
 			});
 		},
 
@@ -247,17 +245,19 @@ interface Future {
 			return this.then(function(obj) { obj[prop] = value; return obj });
 		},
 
-		method: function(method/*, var_args*/) {
-			return this.invoke(method, slice.call(arguments, 1));
-		},
-
-		invoke: function(method, args) {
+		method: function(method, args) {
 			return this.then(function(value) { return value[method].apply(value, args); });
 		},
 
-		execute: function(/* var_args */) {
+		invoke: function(/* var_args */) {
 			var args = slice.call(arguments);
 			return this.then(function(value) { return value.apply(null, args) });
+		},
+
+		adapt: function(methods) {
+			this.then(function(value) {
+				return Promise.adapt(value, methods);
+			});
 		}
 	};
 

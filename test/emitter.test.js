@@ -1,7 +1,7 @@
 if (typeof module !== 'undefined' && module.exports === exports) {
 	var sinon = require('sinon');
 	var expect = require('../lib/expect');
-	var Emitter = require('../src/emitter');
+	var Emitter = require('../src' + (process.env['CODE_COVERAGE'] ? '-cov' : '') + '/emitter');
 }
 
 describe('Emitter type', function() {
